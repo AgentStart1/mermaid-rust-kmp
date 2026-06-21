@@ -36,6 +36,7 @@ compose-components-resources = { module = "org.jetbrains.compose.components:comp
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 wrappers-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser", version.ref = "kotlin-wrappers" }
+mermaid-kmp = { module = "com.storyteller_f.mermaid:mermaidffi-kmp", version = "0.1.0" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
