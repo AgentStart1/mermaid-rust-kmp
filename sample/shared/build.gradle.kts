@@ -47,9 +47,20 @@ kotlin {
     }
     
     sourceSets {
-        androidMain.dependencies {
-            implementation(libs.compose.uiToolingPreview)
-            implementation(libs.mermaid.kmp)
+        val jvmAndAndroidMain by creating {
+            dependsOn(commonMain.get())
+            dependencies {
+                implementation(libs.mermaid.kmp)
+            }
+        }
+        androidMain {
+            dependsOn(jvmAndAndroidMain)
+            dependencies {
+                implementation(libs.compose.uiToolingPreview)
+            }
+        }
+        jvmMain {
+            dependsOn(jvmAndAndroidMain)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -63,9 +74,6 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
-        }
-        jvmMain.dependencies {
-            implementation(libs.mermaid.kmp)
         }
         jsMain.dependencies {
             implementation(libs.wrappers.browser)

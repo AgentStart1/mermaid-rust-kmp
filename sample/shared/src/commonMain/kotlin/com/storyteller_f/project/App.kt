@@ -17,9 +17,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 expect fun renderMermaidDiagram(input: String): String
 
@@ -35,6 +37,8 @@ fun App() {
             )
         }
         var svgOutput by remember { mutableStateOf("") }
+        var errorMessage by remember { mutableStateOf<String?>(null) }
+        val scope = rememberCoroutineScope()
 
         Column(
             modifier = Modifier
@@ -56,7 +60,19 @@ fun App() {
 
             Row {
                 Button(onClick = {
-                    svgOutput = renderMermaidDiagram(mermaidInput)
+                    val input = mermaidInput
+                    scope.launch {
+                        try {
+                            val result = withContext(Dispatchers.Default) {
+                                renderMermaidDiagram(input)
+                            }
+                            svgOutput = result
+                            errorMessage = null
+                        } catch (e: Exception) {
+                            errorMessage = e.message ?: "Unknown error"
+                            svgOutput = ""
+                        }
+                    }
                 }) {
                     Text("Render")
                 }
@@ -64,7 +80,18 @@ fun App() {
                     Button(
                         onClick = {
                             mermaidInput = code
-                            svgOutput = renderMermaidDiagram(code)
+                            scope.launch {
+                                try {
+                                    val result = withContext(Dispatchers.Default) {
+                                        renderMermaidDiagram(code)
+                                    }
+                                    svgOutput = result
+                                    errorMessage = null
+                                } catch (e: Exception) {
+                                    errorMessage = e.message ?: "Unknown error"
+                                    svgOutput = ""
+                                }
+                            }
                         },
                         modifier = Modifier.padding(start = 8.dp),
                     ) {
@@ -73,6 +100,14 @@ fun App() {
                 }
             }
             Spacer(Modifier.height(8.dp))
+
+            if (errorMessage != null) {
+                Text(
+                    text = "Error: $errorMessage",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
 
             if (svgOutput.isNotEmpty()) {
                 Text("SVG output:", style = MaterialTheme.typography.titleSmall)
