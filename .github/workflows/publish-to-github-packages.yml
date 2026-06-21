@@ -30,10 +30,12 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-linux-android,x86_64-linux-android
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android,i686-linux-android
 
-      - name: Install boltffi
-        run: cargo install boltffi_cli
+      - name: Install clang and boltffi
+        run: |
+          sudo apt-get update && sudo apt-get install -y clang
+          cargo install boltffi_cli
 
       - name: Extract version from tag
         id: version
@@ -45,23 +47,7 @@ jobs:
 
       - name: Build native libraries and generate bindings
         working-directory: mermaid-ffi
-        run: |
-          boltffi pack android --release
-          boltffi generate kmp --experimental
-          # Copy Android jniLibs into KMP structure
-          mkdir -p dist/kotlin-multiplatform/src/androidMain/jniLibs/arm64-v8a
-          mkdir -p dist/kotlin-multiplatform/src/androidMain/jniLibs/x86_64
-          cp dist/android/jniLibs/arm64-v8a/libmermaid-ffi.so dist/kotlin-multiplatform/src/androidMain/jniLibs/arm64-v8a/
-          cp dist/android/jniLibs/x86_64/libmermaid-ffi.so dist/kotlin-multiplatform/src/androidMain/jniLibs/x86_64/
-          # Build host JNI for desktop
-          cargo build --release
-          JAVA_HOME="${JAVA_HOME:-$(dirname $(dirname $(readlink -f $(which java))))}"
-          mkdir -p dist/kotlin-multiplatform/src/jvmMain/resources/native/linux-x86_64
-          gcc -shared -o dist/kotlin-multiplatform/src/jvmMain/resources/native/linux-x86_64/libmermaid_ffi_jni.so \
-              -I"$JAVA_HOME/include" -I"$JAVA_HOME/include/linux" -Idist/android/include \
-              dist/kotlin-multiplatform/src/jvmMain/c/jni_glue.c \
-              -Wl,--whole-archive target/release/libmermaid_ffi.a -Wl,--no-whole-archive \
-              -lm -ldl -lpthread -lgcc_s -fPIC -O2
+        run: boltffi pack kmp --release --experimental
 
       - name: Grant execute permission for gradlew
         run: chmod +x mermaid-ffi/dist/kotlin-multiplatform/gradlew

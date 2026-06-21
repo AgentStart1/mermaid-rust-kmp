@@ -1,14 +1,6 @@
 [package]
 name = "mermaid-ffi"
 
-[targets.android]
-enabled = true
-architectures = ["arm64", "x86_64"]
-min_sdk = 24
-
-[targets.android.kotlin]
-package = "com.storyteller_f.mermaid_kmp"
-
 [targets.kotlin_multiplatform]
 enabled = true
 package = "com.storyteller_f.mermaid_kmp"
