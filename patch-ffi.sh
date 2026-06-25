@@ -47,6 +47,7 @@ if grep -q 'vanniktech' "$BUILD_FILE"; then
 fi
 
 sed -i 's/plugins {/plugins {\n    id("com.vanniktech.maven.publish") version "0.30.0"/' "$BUILD_FILE"
+sed -i 's/minSdk = 24/minSdk = 26/' "$BUILD_FILE"
 
 cat >> "$BUILD_FILE" <<GRADLE
 
