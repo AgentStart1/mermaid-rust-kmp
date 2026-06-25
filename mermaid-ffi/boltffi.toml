@@ -4,3 +4,10 @@ name = "mermaid-ffi"
 [targets.kotlin_multiplatform]
 enabled = true
 package = "com.storyteller_f.mermaid_kmp"
+
+[targets.wasm]
+enabled = true
+output = "dist/wasm"
+
+[targets.wasm.npm]
+package_name = "mermaid-ffi-wasm"
