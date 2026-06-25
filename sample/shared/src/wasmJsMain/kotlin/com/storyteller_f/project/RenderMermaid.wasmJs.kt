@@ -1,5 +1,7 @@
 package com.storyteller_f.project
 
+import com.storyteller_f.mermaid_kmp.renderMermaid
+
 actual fun renderMermaidDiagram(input: String): String {
-    return "Native rendering not yet supported on Wasm"
+    return renderMermaid(input)
 }
