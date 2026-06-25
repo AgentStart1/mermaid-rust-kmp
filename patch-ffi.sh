@@ -13,7 +13,12 @@ NPM_VERSION="${1:-}"
 if [ -n "$NPM_VERSION" ]; then
     WASM_NPM_DEP="implementation(npm(\"mermaid-ffi-wasm\", \"$NPM_VERSION\"))"
 else
-    WASM_NPM_DEP='implementation(npm("mermaid-ffi-wasm", "file:../wasm/pkg"))'
+    WASM_PKG_ABS="$(cd "$WASM_PKG_DIR" 2>/dev/null && pwd)" || WASM_PKG_ABS=""
+    if [ -n "$WASM_PKG_ABS" ]; then
+        WASM_NPM_DEP="implementation(npm(\"mermaid-ffi-wasm\", \"file:$WASM_PKG_ABS\"))"
+    else
+        WASM_NPM_DEP='implementation(npm("mermaid-ffi-wasm", "file:../wasm/pkg"))'
+    fi
 fi
 
 if [ ! -d "$DIST_DIR" ]; then
