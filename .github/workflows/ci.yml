@@ -4,6 +4,10 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - 'mermaid-ffi/**'
+      - 'patch-ffi.sh'
+      - '.github/workflows/ci.yml'
 
 jobs:
   build:
