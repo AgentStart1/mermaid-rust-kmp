@@ -22,7 +22,8 @@ JNI glue and headers are generated together by the same generator.
 For a full Android/Wasm build:
 
 ```sh
-cargo install wasm-opt
+python scripts/install-binaryen.py
+# Add the printed bin directory to PATH before running boltffi pack wasm.
 npm install -g typescript
 python scripts/generate-kmp.py
 cd mermaid-ffi
@@ -48,12 +49,23 @@ merges its artifacts and publishes to Maven Central/npm without repeating tests.
 Pushing a `v<version>` tag starts publication. Do not overwrite existing releases:
 0.0.1-alpha2 contains only Linux x86_64 and this fix requires a new version.
 
-## Known Wasm renderer limitation
+## Renderer Wasm timing patch
 
-BoltFFI 0.30.1's npm file list omits its generated Node binding; the patch script
-includes that binding and pins the npm runtime rather than accepting `*`.
-Rust Wasm compilation and binding generation work, but actual rendering in the
-current mermaid-rs-renderer 0.3.1 aborts on `std::time::Instant::now()` during layout.
-This also affects sequence diagrams and is independent of JNI packaging.
-The renderer's upstream [Wasm timing fix](https://github.com/1jehuang/mermaid-rs-renderer/pull/155)
-is still unmerged. Do not claim Wasm runtime rendering has been verified successfully.
+The crates.io renderer 0.3.1 calls std::time::Instant during layout, which panics
+on bare wasm32-unknown-unknown. `scripts/prepare-renderer.py` stages the exact 0.3.1
+crate under ignored `build/renderer`, verifying its original crates.io checksum,
+and replaces three clock imports with `templates/renderer/time.rs`. Native builds
+still use std::time::Instant; Wasm diagnostic timings are zero. Layout and rendering
+logic are unchanged. This avoids wasm-bindgen clock imports in BoltFFI's bare Wasm.
+`generate-kmp.py` prepares this patched dependency automatically. Before running
+Cargo directly from a clean checkout, run `python scripts/prepare-renderer.py`.
+The renderer [upstream timing fix](https://github.com/1jehuang/mermaid-rs-renderer/pull/155)
+is still unmerged; remove the local patch when an appropriate release is available.
+
+BoltFFI 0.30.1's npm file list omits its generated Node binding; patch-ffi.sh adds
+that binding and pins @boltffi/runtime to 0.30.1. CI runs the three real Wasm APIs
+against flowchart and sequence diagrams with `node scripts/test-wasm-rendering.mjs`.
+
+`scripts/install-binaryen.py` downloads official Binaryen 133 and verifies its
+release SHA-256. CI adds its bin directory to PATH automatically. The crates.io
+wasm-opt 0.116 tool does not understand BoltFFI 0.30.1's --enable-bulk-memory-opt.

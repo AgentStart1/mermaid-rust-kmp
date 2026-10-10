@@ -3,12 +3,14 @@ import argparse
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 CRATE = ROOT / "mermaid-ffi"
 DIST = CRATE / "dist/kotlin-multiplatform"
 
 def generate(boltffi="boltffi"):
+    subprocess.run([sys.executable, str(ROOT / "scripts/prepare-renderer.py")], check=True)
     subprocess.run([boltffi, "generate", "kotlin", "--deny-skipped"], cwd=CRATE, check=True)
     templates = ROOT / "templates/kmp"
     for name in ("build.gradle.kts", "settings.gradle.kts"):

@@ -42,7 +42,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y clang
           cargo install boltffi_cli --version 0.30.1 --locked
-          cargo install wasm-opt
+          python scripts/install-binaryen.py
           npm install -g typescript
 
       - name: Extract version from tag

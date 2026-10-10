@@ -71,7 +71,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y clang
           cargo install boltffi_cli --version 0.30.1 --locked
-          cargo install wasm-opt
+          python scripts/install-binaryen.py
           npm install -g typescript
 
       - name: Build native libraries and generate bindings
@@ -84,6 +84,11 @@ jobs:
 
       - name: Patch generated files
         run: ./patch-ffi.sh
+
+      - name: Test actual Wasm rendering
+        run: |
+          npm install --prefix mermaid-ffi/dist/wasm/pkg --ignore-scripts
+          node scripts/test-wasm-rendering.mjs
 
       - name: Build KMP project
         working-directory: mermaid-ffi/dist/kotlin-multiplatform
