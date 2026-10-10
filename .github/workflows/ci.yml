@@ -9,6 +9,9 @@ on:
       - 'patch-ffi.sh'
       - '.github/workflows/ci.yml'
 
+env:
+  CARGO_TERM_COLOR: never
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -32,8 +35,8 @@ jobs:
       - name: Install clang, boltffi, and wasm-opt
         run: |
           sudo apt-get update && sudo apt-get install -y clang
-          cargo install boltffi_cli --version 0.26.1
-          cargo install wasm-opt
+          cargo install boltffi_cli --color never --version 0.26.1
+          cargo install wasm-opt --color never
           npm install -g typescript
 
       - name: Build native libraries and generate bindings
