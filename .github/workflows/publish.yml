@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: read
+
 env:
   CARGO_TERM_COLOR: never
 
@@ -50,7 +53,11 @@ jobs:
 
   publish:
     needs: desktop-native
+    if: github.repository == 'storytellerF/mermaid-rust-kmp'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -69,9 +76,14 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '>=22.14.0 <23'
           package-manager-cache: false
-          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install npm with Trusted Publishing support
+        run: |
+          npm install --global npm@11.21.0 --registry=https://registry.npmjs.org
+          node --version
+          npm --version
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -128,10 +140,9 @@ jobs:
       - name: Set npm package version and publish
         working-directory: mermaid-ffi/dist/wasm/pkg
         run: |
+          npm pkg set repository.type=git repository.url=git+https://github.com/storytellerF/mermaid-rust-kmp.git
           npm version "$VERSION" --no-git-tag-version
-          npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          npm publish --access public --registry=https://registry.npmjs.org
 
       - name: Publish to Maven Central
         working-directory: mermaid-ffi/dist/kotlin-multiplatform
