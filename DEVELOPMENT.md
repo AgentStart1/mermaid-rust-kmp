@@ -40,11 +40,11 @@ it uses the local generated npm package. The desktop tests exercise all three pu
 functions and assert SVG output and node labels. Native libraries load from bundled
 `native/<host>` resources without configuring java.library.path.
 
-`build-native.yml` only builds the four desktop targets on their respective hosts.
-`ci.yml` downloads and merges those artifacts, runs rendering tests on each host and
-checks that the JVM JAR contains all four nonempty JNI libraries, alongside the
-Android/Wasm build. `publish.yml` reuses the pure build workflow on version tags,
-merges its artifacts and publishes to Maven Central/npm without repeating tests.
+`ci.yml` and `publish.yml` each build the four desktop targets on their respective
+hosts. CI downloads and merges those artifacts, runs rendering tests on each host
+and checks that the JVM JAR contains all four nonempty JNI libraries, alongside
+the Android/Wasm build. On version tags, the publishing workflow merges its native
+artifacts and publishes to Maven Central/npm without repeating tests.
 Pushing a `v<version>` tag starts publication. Do not overwrite existing releases:
 0.0.1-alpha2 contains only Linux x86_64 and this fix requires a new version.
 
