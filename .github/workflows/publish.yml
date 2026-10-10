@@ -41,8 +41,8 @@ jobs:
       - name: Install clang, boltffi, and wasm-opt
         run: |
           sudo apt-get update && sudo apt-get install -y clang
-          cargo install boltffi_cli --color never --version 0.26.1
-          cargo install wasm-opt --color never
+          cargo install boltffi_cli --version 0.26.1
+          cargo install wasm-opt
           npm install -g typescript
 
       - name: Extract version from tag
