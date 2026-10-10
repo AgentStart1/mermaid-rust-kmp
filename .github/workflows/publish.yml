@@ -142,7 +142,12 @@ jobs:
         run: |
           npm pkg set repository.type=git repository.url=git+https://github.com/storytellerF/mermaid-rust-kmp.git
           npm version "$VERSION" --no-git-tag-version
-          npm publish --access public --registry=https://registry.npmjs.org
+          # Ignore build metadata when detecting a SemVer prerelease.
+          case "${VERSION%%+*}" in
+            *-*) NPM_TAG=next ;;
+            *) NPM_TAG=latest ;;
+          esac
+          npm publish --access public --tag "$NPM_TAG" --registry=https://registry.npmjs.org
 
       - name: Publish to Maven Central
         working-directory: mermaid-ffi/dist/kotlin-multiplatform
