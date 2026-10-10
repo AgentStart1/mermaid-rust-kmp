@@ -90,3 +90,36 @@ The build passes MACOSX_DEPLOYMENT_TARGET to Rust and the binding generator,
 and -mmacosx-version-min=15.0 to the JNI compiler/linker. It verifies the final
 dylib deployment version with otool after building. Builds and
 rendering tests run on macOS 15, matching the minimum supported version.
+
+## Actions dependency caches
+
+Both workflows use `.github/actions/build-cache` after installing Rust stable.
+Swatinem/rust-cache 2.9.2 caches the Cargo registry/git dependencies and
+`mermaid-ffi/target`, with separate OS, runner architecture and desktop versus
+Android/Wasm target-set keys. Its compiler fingerprint and Cargo manifest/lock
+hashes further isolate toolchains and dependencies. Explicit source hashes cover
+the renderer timing patch and JNI build configuration. The checksum-verified
+renderer path patch is prepared before the action runs Cargo metadata; generated
+JNI resources are rebuilt locally rather than restored as CI artifacts.
+
+BoltFFI CLI 0.31.0 uses an independent actions/cache 6.1.0 entry keyed by OS,
+architecture and the complete rustc toolchain identity. Only the isolated
+`runner.temp/boltffi-cli/bin` is cached, never `~/.cargo/bin` or Rust tools.
+Every restore checks `boltffi --version`; matching binaries skip cargo install,
+and missing or mismatched binaries are installed with the exact locked version.
+Step summaries report Rust and CLI exact cache hits.
+
+Gradle dependencies and wrapper distributions use only setup-java's Gradle cache,
+including all desktop test jobs. Keys hash the sample/desktop build definitions
+and canonical KMP templates, since the publishing Gradle project is generated.
+Do not add another Gradle User Home cache provider to these jobs.
+
+Android/Wasm and publishing use Node 22 and cache only npm's `~/.npm` download
+cache. There is no committed npm lockfile: the Wasm staging install pins its tool
+and runtime versions in `scripts/build-wasm.py`, and its package is generated.
+The key hashes that script, BoltFFI configuration, patch script and KMP templates;
+a same-platform Node 22 fallback reuses verified downloads. Installs still resolve
+and validate dependencies on every run; node_modules and generated packages are
+not cached. setup-node's automatic package-manager caching is disabled to avoid
+an overlapping provider. PR caches are scoped to the PR merge ref, so a rerun of
+the same PR can verify warm hits; release tags cannot consume a PR-only cache.

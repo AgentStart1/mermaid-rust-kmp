@@ -36,8 +36,10 @@ jobs:
       - name: Install Linux compiler
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y clang
-      - name: Install matching binding generator
-        run: cargo install boltffi_cli --version 0.31.0 --locked
+      - name: Cache Rust and binding generator
+        uses: ./.github/actions/build-cache
+        with:
+          build-key: desktop-${{ matrix.host }}
       - name: Build desktop JNI library
         run: python scripts/build-desktop-jni.py
       - uses: actions/upload-artifact@v7
@@ -63,12 +65,19 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: 'gradle'
+          cache: gradle
+          cache-dependency-path: |
+            desktop-test/*.gradle.kts
+            sample/**/*.gradle.kts
+            sample/gradle/*.toml
+            sample/gradle/wrapper/gradle-wrapper.properties
+            templates/kmp/**
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
           node-version: '22'
+          package-manager-cache: false
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install Rust toolchain
@@ -76,10 +85,22 @@ jobs:
         with:
           targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android,i686-linux-android,wasm32-unknown-unknown
 
-      - name: Install clang, BoltFFI, and Binaryen
+      - name: Cache Rust and binding generator
+        uses: ./.github/actions/build-cache
+        with:
+          build-key: android-wasm
+
+      - name: Cache npm downloads
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.npm
+          key: npm-v1-${{ runner.os }}-${{ runner.arch }}-node22-${{ hashFiles('scripts/build-wasm.py', 'mermaid-ffi/boltffi.toml', 'patch-ffi.sh', 'templates/kmp/**') }}
+          restore-keys: |
+            npm-v1-${{ runner.os }}-${{ runner.arch }}-node22-
+
+      - name: Install clang and Binaryen
         run: |
           sudo apt-get update && sudo apt-get install -y clang
-          cargo install boltffi_cli --version 0.31.0 --locked
           python scripts/install-binaryen.py
 
       - name: Extract version from tag
