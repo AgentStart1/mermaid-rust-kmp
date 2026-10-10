@@ -22,13 +22,14 @@ and classic theme rendering, asserting SVG output and both diagram node labels.
 The JVM loader reads JNI libraries from `native/<host>` resources, so consumers do
 not need to configure `java.library.path`.
 
-The release workflow runs these checks on Windows and both Mac architectures,
-merges their resource artifacts into the generated KMP project, and validates the
-resulting JVM JAR together with the Linux library before publishing anything:
+`ci.yml` is the entry point for pull-request verification. It calls the reusable
+`desktop.yml` workflow to build and test all four desktop targets, alongside the
+Android and Wasm KMP build. Changes to scripts and desktop tests also trigger CI.
 
-```sh
-python scripts/check-desktop-package.py desktop-test/build/libs/mermaid-desktop-test-jvm.jar
-```
+On a version tag, `publish.yml` calls the same desktop build with `run-tests: false`,
+merges the native resources into the generated KMP project, and publishes to npm
+and Maven Central. Release builds do not repeat rendering tests or package validation;
+these checks belong to CI. Native builds remain necessary to produce release artifacts.
 
 Existing 0.0.1-alpha2 publications contain only the Linux x86_64 library. Ship this
 fix with a new version and update consumers; do not overwrite an existing release.

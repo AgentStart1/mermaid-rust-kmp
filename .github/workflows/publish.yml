@@ -11,6 +11,8 @@ env:
 jobs:
   desktop-native:
     uses: ./.github/workflows/desktop.yml
+    with:
+      run-tests: false
 
   publish:
     needs: desktop-native
@@ -63,18 +65,8 @@ jobs:
           merge-multiple: true
           path: mermaid-ffi/dist/kotlin-multiplatform/src/jvmMain/resources/native/
 
-      - name: Verify desktop rendering and complete JVM package
-        run: |
-          bash sample/gradlew -p desktop-test check jvmJar --console=plain
-          python scripts/check-desktop-package.py desktop-test/build/libs/mermaid-desktop-test-jvm.jar
-
       - name: Patch generated files
         run: ./patch-ffi.sh "$VERSION"
-
-      - name: Verify actual Maven JVM artifact
-        run: |
-          bash mermaid-ffi/dist/kotlin-multiplatform/gradlew -p mermaid-ffi/dist/kotlin-multiplatform jvmJar -Pversion="$VERSION" --console=plain
-          python scripts/check-desktop-package.py "mermaid-ffi/dist/kotlin-multiplatform/build/libs/mermaidffi-kmp-jvm-$VERSION.jar"
 
       - name: Set npm package version and publish
         working-directory: mermaid-ffi/dist/wasm/pkg

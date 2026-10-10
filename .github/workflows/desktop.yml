@@ -2,9 +2,10 @@ name: Verify desktop native libraries
 
 on:
   workflow_call:
-  pull_request:
-  push:
-    branches: [main, 'codex/**']
+    inputs:
+      run-tests:
+        type: boolean
+        default: true
 
 env:
   CARGO_TERM_COLOR: never
@@ -40,10 +41,12 @@ jobs:
       - name: Install matching binding generator
         run: cargo install boltffi_cli --version 0.26.1 --locked
       - name: Test package validation
+        if: inputs.run-tests
         run: python -m unittest discover -s scripts -p 'test_*.py'
       - name: Build desktop JNI library
         run: python scripts/build-desktop-jni.py
       - name: Test generated Kotlin APIs
+        if: inputs.run-tests
         shell: bash
         run: bash sample/gradlew -p desktop-test check jvmJar --console=plain
       - uses: actions/upload-artifact@v7

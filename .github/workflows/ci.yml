@@ -7,12 +7,18 @@ on:
     paths:
       - 'mermaid-ffi/**'
       - 'patch-ffi.sh'
-      - '.github/workflows/ci.yml'
+      - '.github/workflows/**'
+      - 'scripts/**'
+      - 'desktop-test/**'
+      - 'templates/**'
 
 env:
   CARGO_TERM_COLOR: never
 
 jobs:
+  desktop-native:
+    uses: ./.github/workflows/desktop.yml
+
   build:
     runs-on: ubuntu-latest
 
