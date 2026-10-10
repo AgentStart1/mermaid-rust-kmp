@@ -65,13 +65,6 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: gradle
-          cache-dependency-path: |
-            desktop-test/*.gradle.kts
-            sample/**/*.gradle.kts
-            sample/gradle/*.toml
-            sample/gradle/wrapper/gradle-wrapper.properties
-            templates/kmp/**
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -124,6 +117,13 @@ jobs:
 
       - name: Patch generated files
         run: ./patch-ffi.sh "$VERSION"
+
+      - name: Set up Gradle and dependency cache
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-provider: enhanced
+          # PR merge refs and release tags need writable caches too.
+          cache-read-only: false
 
       - name: Set npm package version and publish
         working-directory: mermaid-ffi/dist/wasm/pkg

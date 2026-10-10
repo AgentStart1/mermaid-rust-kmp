@@ -109,12 +109,21 @@ Every restore checks `boltffi --version`; matching binaries skip cargo install,
 and missing or mismatched binaries are installed with the exact locked version.
 Step summaries report Rust and CLI exact cache hits.
 
-Gradle dependencies and wrapper distributions use only setup-java's Gradle cache,
-including all desktop test jobs. Keys hash the sample/desktop build definitions
-and canonical KMP templates, since the publishing Gradle project is generated.
-Windows stops the Gradle daemon after tests, including failed test runs, so file
-locks are released before setup-java archives the dependency cache.
-Do not add another Gradle User Home cache provider to these jobs.
+Gradle User Home, dependencies, wrapper distributions and local build state use
+only `gradle/actions/setup-gradle` 6.4.0 with its enhanced cache provider.
+setup-java supplies JDK 21 without caching. Setup runs after generated projects
+and their patches are ready, before the first Gradle invocation; automatic wrapper
+validation checks the available wrapper JARs. No Gradle version is installed by
+the action: desktop tests and generated KMP builds retain their own wrappers.
+The action keys state by OS, job, workflow/matrix and commit, separating the four
+desktop hosts (including the two macOS architectures) and Android/Wasm jobs.
+It restores the closest available state and deduplicates shared dependencies.
+`cache-read-only: false` allows CI to save PR merge-ref caches and publishing to
+save tag caches; PR entries can be reused by subsequent runs of that PR, but are
+not accessible to release tags. The post-action stops Gradle daemons before
+cleanup and saving, including on Windows, so no separate `--stop` is required.
+Do not add setup-java caching or an actions/cache entry for Gradle User Home.
+Gradle cache restore/save details are recorded in action logs and job summaries.
 
 Android/Wasm and publishing use Node 22 and cache only npm's `~/.npm` download
 cache. There is no committed npm lockfile: the Wasm staging install pins its tool
@@ -128,4 +137,4 @@ the same PR can verify warm hits; release tags cannot consume a PR-only cache.
 
 Provider references: [Rust cache inputs and keying](https://github.com/Swatinem/rust-cache),
 [official dependency cache](https://github.com/actions/cache), and
-[setup-java Gradle caching](https://github.com/actions/setup-java#caching-packages-dependencies).
+[setup-gradle configuration and caching](https://github.com/gradle/actions/blob/v6.4.0/docs/setup-gradle.md).

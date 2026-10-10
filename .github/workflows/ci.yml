@@ -37,13 +37,6 @@ jobs:
         with:
           java-version: '21'
           distribution: temurin
-          cache: gradle
-          cache-dependency-path: |
-            desktop-test/*.gradle.kts
-            sample/**/*.gradle.kts
-            sample/gradle/*.toml
-            sample/gradle/wrapper/gradle-wrapper.properties
-            templates/kmp/**
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
@@ -59,15 +52,17 @@ jobs:
         run: python scripts/build-desktop-jni.py
       - name: Test package validation
         run: python -m unittest discover -s scripts -p 'test_*.py'
+      - name: Set up Gradle and dependency cache
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-provider: enhanced
+          # PR merge refs and release tags need writable caches too.
+          cache-read-only: false
+
       - name: Test generated Kotlin APIs with local JNI library
         shell: bash
         run: |
           bash sample/gradlew -p desktop-test check jvmJar --console=plain
-      # setup-java cannot archive Gradle caches while Windows daemon locks are held.
-      - name: Release Windows Gradle cache locks
-        if: always() && runner.os == 'Windows'
-        shell: bash
-        run: bash sample/gradlew -p desktop-test --stop
 
   android-wasm-build:
     runs-on: ubuntu-latest
@@ -91,13 +86,6 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: gradle
-          cache-dependency-path: |
-            desktop-test/*.gradle.kts
-            sample/**/*.gradle.kts
-            sample/gradle/*.toml
-            sample/gradle/wrapper/gradle-wrapper.properties
-            templates/kmp/**
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -137,6 +125,13 @@ jobs:
         run: |
           npm install --prefix mermaid-ffi/dist/wasm/pkg --ignore-scripts
           node scripts/test-wasm-rendering.mjs
+
+      - name: Set up Gradle and dependency cache
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-provider: enhanced
+          # PR merge refs and release tags need writable caches too.
+          cache-read-only: false
 
       - name: Build KMP project
         working-directory: mermaid-ffi/dist/kotlin-multiplatform
