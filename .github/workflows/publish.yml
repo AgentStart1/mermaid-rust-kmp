@@ -65,7 +65,7 @@ jobs:
         with:
           pattern: desktop-*
           merge-multiple: true
-          path: mermaid-ffi/dist/kotlin-multiplatform/
+          path: mermaid-ffi/dist/kotlin-multiplatform/src/jvmMain/resources/native/
 
       - name: Patch generated files
         run: ./patch-ffi.sh "$VERSION"

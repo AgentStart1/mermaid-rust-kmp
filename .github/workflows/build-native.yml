@@ -41,6 +41,14 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: desktop-${{ matrix.host }}
-          path: mermaid-ffi/dist/kotlin-multiplatform/
+          path: mermaid-ffi/dist/kotlin-multiplatform/src/jvmMain/resources/native/
           if-no-files-found: error
 
+      - uses: actions/upload-artifact@v7
+        if: matrix.host == 'linux-x86_64'
+        with:
+          name: kmp-jvm-bindings
+          path: |
+            mermaid-ffi/dist/kotlin-multiplatform/src/commonMain/kotlin/
+            mermaid-ffi/dist/kotlin-multiplatform/src/jvmMain/kotlin/
+          if-no-files-found: error

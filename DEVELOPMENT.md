@@ -76,3 +76,9 @@ The generated publishing project uses AGP 8.13.2 and its own checksum-pinned Gra
 8.13 wrapper, compatible with Kotlin 2.3.21. Desktop tests keep the sample wrapper.
 Use the generated project's wrapper for its build; do not invoke the sample wrapper
 against the Android publishing project.
+
+Desktop artifacts contain only host-specific JNI resources. A separate single
+Linux-generated `kmp-jvm-bindings` artifact supplies portable common/JVM Kotlin
+sources to tests. Never merge multiple copies of Kotlin sources: parallel artifact
+extraction can overwrite files concurrently, especially across LF/CRLF checkouts.
+The publishing job generates its own sources and merges only native libraries.
