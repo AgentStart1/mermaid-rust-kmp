@@ -7,7 +7,7 @@
 | Platform | Status |
 | --- | --- |
 | Android | Supported |
-| JVM / Desktop | Linux x86_64, Windows x86_64, macOS 11+ (Intel and Apple Silicon) |
+| JVM / Desktop | Linux x86_64, Windows x86_64, macOS 15+ (Intel and Apple Silicon) |
 | Kotlin/Wasm browser | Supported |
 | Kotlin/JS | Native rendering is not yet supported |
 | iOS | Native rendering is not yet supported |

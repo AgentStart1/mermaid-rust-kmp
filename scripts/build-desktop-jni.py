@@ -12,7 +12,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 CRATE = ROOT / "mermaid-ffi"
 DIST = CRATE / "dist/kotlin-multiplatform"
-MACOS_DEPLOYMENT_TARGET = "11.0"
+MACOS_DEPLOYMENT_TARGET = "15.0"
 
 
 def run(args, **kwargs):
@@ -81,7 +81,7 @@ def build(boltffi):
                 if not match:
                     raise RuntimeError(f"Missing macOS deployment version in {output}")
                 versions.append(match.group(1))
-        if not versions or any(tuple(map(int, version.split(".")))[:2] != (11, 0) for version in versions):
+        if not versions or any(tuple(map(int, version.split(".")))[:2] != tuple(map(int, MACOS_DEPLOYMENT_TARGET.split("."))) for version in versions):
             raise RuntimeError(f"Unexpected macOS deployment version in {output}: {versions}")
         print(f"macOS deployment target verified: {MACOS_DEPLOYMENT_TARGET}")
     print(output)

@@ -83,8 +83,8 @@ sources to tests. Never merge multiple copies of Kotlin sources: parallel artifa
 extraction can overwrite files concurrently, especially across LF/CRLF checkouts.
 The publishing job generates its own sources and merges only native libraries.
 
-Desktop macOS builds use a fixed 11.0 deployment target for both architectures.
+Desktop macOS builds use a fixed 15.0 deployment target for both architectures.
 The build passes MACOSX_DEPLOYMENT_TARGET to Rust and the binding generator,
-and -mmacosx-version-min=11.0 to the JNI compiler/linker. It verifies the final
+and -mmacosx-version-min=15.0 to the JNI compiler/linker. It verifies the final
 dylib deployment version with otool before uploading artifacts. Builds and
-rendering tests run on macOS 15; macOS 11 runtime testing is not available in CI.
+rendering tests run on macOS 15, matching the minimum supported version.
