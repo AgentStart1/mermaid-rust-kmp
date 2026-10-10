@@ -7,7 +7,7 @@
 | Platform | Status |
 | --- | --- |
 | Android | Supported |
-| JVM / Desktop | Supported |
+| JVM / Desktop | Linux x86_64, Windows x86_64, macOS Intel and Apple Silicon |
 | Kotlin/Wasm browser | Supported |
 | Kotlin/JS | Native rendering is not yet supported |
 | iOS | Native rendering is not yet supported |
@@ -85,6 +85,10 @@ cd sample
 ```
 
 The sample's iOS and Kotlin/JS targets display a "Native rendering not yet supported" message. Its Wasm, Android, and JVM targets invoke this library.
+
+Desktop native packaging and validation are documented in [DEVELOPMENT.md](./DEVELOPMENT.md).
+
+Version `0.0.1-alpha2` includes only the Linux x86_64 native library. The Windows and macOS packaging fix requires a new release.
 
 ## Build from source
 
