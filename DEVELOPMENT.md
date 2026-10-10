@@ -47,3 +47,13 @@ Android/Wasm build. `publish.yml` reuses the pure build workflow on version tags
 merges its artifacts and publishes to Maven Central/npm without repeating tests.
 Pushing a `v<version>` tag starts publication. Do not overwrite existing releases:
 0.0.1-alpha2 contains only Linux x86_64 and this fix requires a new version.
+
+## Known Wasm renderer limitation
+
+BoltFFI 0.30.1's npm file list omits its generated Node binding; the patch script
+includes that binding and pins the npm runtime rather than accepting `*`.
+Rust Wasm compilation and binding generation work, but actual rendering in the
+current mermaid-rs-renderer 0.3.1 aborts on `std::time::Instant::now()` during layout.
+This also affects sequence diagrams and is independent of JNI packaging.
+The renderer's upstream [Wasm timing fix](https://github.com/1jehuang/mermaid-rs-renderer/pull/155)
+is still unmerged. Do not claim Wasm runtime rendering has been verified successfully.

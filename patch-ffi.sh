@@ -26,6 +26,8 @@ if [ ! -d "$DIST_DIR" ]; then
     exit 1
 fi
 
+python "$SCRIPT_DIR/scripts/patch-wasm-package.py"
+
 # 1. Copy Gradle wrapper from sample/
 cp "$SCRIPT_DIR/sample/gradlew" "$DIST_DIR/gradlew"
 cp "$SCRIPT_DIR/sample/gradlew.bat" "$DIST_DIR/gradlew.bat"
