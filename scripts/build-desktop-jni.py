@@ -47,9 +47,8 @@ def build(boltffi):
         compiler, host, filename, jni_platform = "clang", "linux-x86_64", "libmermaid_ffi_jni.so", "linux"
     else:
         raise RuntimeError(f"Unsupported host: {system}/{machine}")
-    run([boltffi, "generate", "kmp", "--experimental"])
+    subprocess.run([sys.executable, str(ROOT / "scripts/generate-kmp.py"), "--boltffi", boltffi], check=True)
     c_dir = DIST / "src/jvmMain/c"
-    run([boltffi, "generate", "header", "-o", str(c_dir)])
     result = run(["cargo", "rustc", "--release", "--locked", "--lib", "--", "--print", "native-static-libs"], capture_output=True, text=True, encoding="utf-8", errors="replace")
     match = re.search(r"native-static-libs: (.+)", result.stderr)
     if not match:

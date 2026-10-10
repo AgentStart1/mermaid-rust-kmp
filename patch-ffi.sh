@@ -60,7 +60,7 @@ kotlin {
     sourceSets {
         val wasmJsMain by getting {
             dependencies {
-                implementation(npm("@boltffi/runtime", "0.26.1"))
+                implementation(npm("@boltffi/runtime", "0.30.1"))
                 $WASM_NPM_DEP
             }
         }

@@ -1,35 +1,49 @@
-# Desktop native builds
+# Building and verification
 
-The desktop JVM artifact must contain Linux x86_64, Windows x86_64, macOS Intel,
-and macOS Apple Silicon JNI libraries. Each library is built on its own host;
-assembling a release on Ubuntu alone does not build Windows or macOS libraries.
-
-Use Rust stable, JDK 21, Python 3, and BoltFFI CLI 0.26.1. Windows additionally
-requires Visual Studio C++ build tools and clang-cl. macOS requires Xcode command
-line tools. The Rust BoltFFI dependency is pinned to 0.26.1 to match the generator
-and Wasm runtime: 0.30 changes the exported ABI, and its experimental KMP generator
-does not support the String parameters used by these rendering APIs.
+Use Rust stable, JDK 21, Python 3 and BoltFFI CLI 0.30.1. The Rust dependency remains
+BoltFFI 0.30 (Cargo.lock resolves 0.30.1); the CLI and Wasm runtime use 0.30.1 too.
+Windows needs Visual Studio C++ build tools and clang-cl; macOS needs Xcode tools.
+Android/Wasm builds additionally need Android SDK/NDK, Node/npm, TypeScript and wasm-opt.
 
 ```sh
-cargo install boltffi_cli --version 0.26.1 --locked
+cargo install boltffi_cli --version 0.30.1 --locked
 python scripts/build-desktop-jni.py
 bash sample/gradlew -p desktop-test check jvmJar --console=plain
+python -m unittest discover -s scripts -p 'test_*.py'
 ```
 
-The standalone desktop test project compiles the generated common and JVM bindings
-without requiring the Android SDK. Its three tests call default, custom spacing,
-and classic theme rendering, asserting SVG output and both diagram node labels.
-The JVM loader reads JNI libraries from `native/<host>` resources, so consumers do
-not need to configure `java.library.path`.
+BoltFFI 0.30.1's experimental KMP emitter rejects String parameters. Instead,
+`scripts/generate-kmp.py` uses its supported Kotlin/JNI emitter with `--deny-skipped`,
+then assembles the KMP project from `templates/kmp`. Edit those templates rather than
+generated dist files. The common API and JVM facade filename remain compatible;
+generated JNI bindings live in the existing jvm package and are shared with Android.
+JNI glue and headers are generated together by the same generator.
 
-`ci.yml` is the entry point for pull-request verification. It calls the reusable
-`desktop.yml` workflow to build and test all four desktop targets, alongside the
-Android and Wasm KMP build. Changes to scripts and desktop tests also trigger CI.
+For a full Android/Wasm build:
 
-On a version tag, `publish.yml` calls the same desktop build with `run-tests: false`,
-merges the native resources into the generated KMP project, and publishes to npm
-and Maven Central. Release builds do not repeat rendering tests or package validation;
-these checks belong to CI. Native builds remain necessary to produce release artifacts.
+```sh
+cargo install wasm-opt
+npm install -g typescript
+python scripts/generate-kmp.py
+cd mermaid-ffi
+boltffi pack android --release --deny-skipped
+boltffi pack wasm --release
+cd ..
+python scripts/build-desktop-jni.py
+./patch-ffi.sh
+cd mermaid-ffi/dist/kotlin-multiplatform
+./gradlew build -Pversion=0.0.0-local -Pgroup=io.github.storytellerf
+```
 
-Existing 0.0.1-alpha2 publications contain only the Linux x86_64 library. Ship this
-fix with a new version and update consumers; do not overwrite an existing release.
+`patch-ffi.sh [npm-version]` adds publishing and Wasm integration. Without a version,
+it uses the local generated npm package. The desktop tests exercise all three public
+functions and assert SVG output and node labels. Native libraries load from bundled
+`native/<host>` resources without configuring java.library.path.
+
+`build-native.yml` only builds the four desktop targets on their respective hosts.
+`ci.yml` downloads and merges those artifacts, runs rendering tests on each host and
+checks that the JVM JAR contains all four nonempty JNI libraries, alongside the
+Android/Wasm build. `publish.yml` reuses the pure build workflow on version tags,
+merges its artifacts and publishes to Maven Central/npm without repeating tests.
+Pushing a `v<version>` tag starts publication. Do not overwrite existing releases:
+0.0.1-alpha2 contains only Linux x86_64 and this fix requires a new version.

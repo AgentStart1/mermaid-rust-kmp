@@ -1,11 +1,7 @@
-name: Verify desktop native libraries
+name: Build desktop native libraries
 
 on:
   workflow_call:
-    inputs:
-      run-tests:
-        type: boolean
-        default: true
 
 env:
   CARGO_TERM_COLOR: never
@@ -39,19 +35,12 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y clang
       - name: Install matching binding generator
-        run: cargo install boltffi_cli --version 0.26.1 --locked
-      - name: Test package validation
-        if: inputs.run-tests
-        run: python -m unittest discover -s scripts -p 'test_*.py'
+        run: cargo install boltffi_cli --version 0.30.1 --locked
       - name: Build desktop JNI library
         run: python scripts/build-desktop-jni.py
-      - name: Test generated Kotlin APIs
-        if: inputs.run-tests
-        shell: bash
-        run: bash sample/gradlew -p desktop-test check jvmJar --console=plain
       - uses: actions/upload-artifact@v7
         with:
           name: desktop-${{ matrix.host }}
-          path: mermaid-ffi/dist/kotlin-multiplatform/src/jvmMain/resources/native/
+          path: mermaid-ffi/dist/kotlin-multiplatform/
           if-no-files-found: error
 

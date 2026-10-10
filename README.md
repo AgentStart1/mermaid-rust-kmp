@@ -90,27 +90,4 @@ Desktop native packaging and validation are documented in [DEVELOPMENT.md](./DEV
 
 Version `0.0.1-alpha2` includes only the Linux x86_64 native library. The Windows and macOS packaging fix requires a new release.
 
-## Build from source
-
-Building requires Rust stable, the Android NDK/SDK, JDK 21, Node.js/npm, TypeScript, `wasm-opt`, and BoltFFI CLI 0.26.1. Generate the bindings and build the generated KMP project with:
-
-```sh
-cargo install boltffi_cli --version 0.26.1
-cargo install wasm-opt
-npm install -g typescript
-
-cd mermaid-ffi
-boltffi pack kmp --release --experimental
-boltffi pack wasm --release
-cd ..
-./patch-ffi.sh
-
-cd mermaid-ffi/dist/kotlin-multiplatform
-./gradlew build -Pversion=0.0.0-local -Pgroup=io.github.storytellerf
-```
-
-`patch-ffi.sh` adds Maven publishing configuration, Kotlin/Wasm support, and the Wasm implementation to the generated KMP project. To make the generated project use a published npm package, pass its version: `./patch-ffi.sh <version>`.
-
-## Publishing
-
-Pushing a Git tag in the form `v<version>` triggers GitHub Actions to publish `mermaid-ffi-wasm` to npm and `mermaidffi-kmp` to Maven Central.
+For source builds, validation and publishing, see [DEVELOPMENT.md](./DEVELOPMENT.md).
