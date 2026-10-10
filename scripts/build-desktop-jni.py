@@ -58,10 +58,7 @@ def build(boltffi):
     c_dir = DIST / "src/jvmMain/c"
     run([boltffi, "generate", "header", "-o", str(c_dir)])
     result = run(["cargo", "rustc", "--release", "--locked", "--lib", "--", "--print", "native-static-libs"], capture_output=True, text=True, encoding="utf-8", errors="replace")
-    match = re.search(r"native-static-libs: (.+)", result.stderr)
-    if not match:
-        raise RuntimeError("Rust did not report native link dependencies")
-    libraries = shlex.split(match.group(1))
+    libraries = native_link_libraries(result.stderr)
     java_include = Path(os.environ["JAVA_HOME"]) / "include"
     output = DIST / "src/jvmMain/resources/native" / host / filename
     output.parent.mkdir(parents=True, exist_ok=True)
