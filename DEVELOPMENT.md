@@ -112,6 +112,8 @@ Step summaries report Rust and CLI exact cache hits.
 Gradle dependencies and wrapper distributions use only setup-java's Gradle cache,
 including all desktop test jobs. Keys hash the sample/desktop build definitions
 and canonical KMP templates, since the publishing Gradle project is generated.
+Windows stops the Gradle daemon after tests, including failed test runs, so file
+locks are released before setup-java archives the dependency cache.
 Do not add another Gradle User Home cache provider to these jobs.
 
 Android/Wasm and publishing use Node 22 and cache only npm's `~/.npm` download

@@ -63,6 +63,10 @@ jobs:
         shell: bash
         run: |
           bash sample/gradlew -p desktop-test check jvmJar --console=plain
+      - name: Release Windows Gradle cache locks
+        if: always() && runner.os == 'Windows'
+        shell: bash
+        run: bash sample/gradlew -p desktop-test --stop
 
   android-wasm-build:
     runs-on: ubuntu-latest
