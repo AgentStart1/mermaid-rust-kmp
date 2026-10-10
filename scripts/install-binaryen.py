@@ -1,4 +1,4 @@
-"""Install the fixed official Binaryen tool required by BoltFFI 0.30.1."""
+"""Install the fixed official Binaryen tool required by BoltFFI 0.31.0."""
 import hashlib
 import io
 import os

@@ -4,6 +4,7 @@ import { pathToFileURL } from "node:url";
 
 const pkg = resolve(process.argv[2] ?? "mermaid-ffi/dist/wasm/pkg");
 const api = await import(pathToFileURL(resolve(pkg, "node.js")));
+await api.initialized;
 for (const input of ["graph TD; A[Alpha]-->B[Beta]", "sequenceDiagram\n participant A as Alpha\n participant B as Beta\n A->>B: Hello"]) {
     for (const [name, args] of [
         ["renderMermaid", [input]],

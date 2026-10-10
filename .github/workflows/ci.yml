@@ -74,9 +74,8 @@ jobs:
       - name: Install clang, BoltFFI, and Binaryen
         run: |
           sudo apt-get update && sudo apt-get install -y clang
-          cargo install boltffi_cli --version 0.30.1 --locked
+          cargo install boltffi_cli --version 0.31.0 --locked
           python scripts/install-binaryen.py
-          npm install -g typescript
 
       - name: Build native libraries and generate bindings
         working-directory: mermaid-ffi
@@ -84,7 +83,7 @@ jobs:
           python ../scripts/generate-kmp.py
           boltffi pack android --release --deny-skipped
           python ../scripts/build-desktop-jni.py
-          boltffi pack wasm --release
+          python ../scripts/build-wasm.py
 
       - name: Patch generated files
         run: ./patch-ffi.sh

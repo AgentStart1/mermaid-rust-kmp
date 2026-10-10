@@ -26,8 +26,6 @@ if [ ! -d "$DIST_DIR" ]; then
     exit 1
 fi
 
-python "$SCRIPT_DIR/scripts/patch-wasm-package.py"
-
 # 1. Copy Gradle wrapper from sample/
 cp "$SCRIPT_DIR/sample/gradlew" "$DIST_DIR/gradlew"
 cp "$SCRIPT_DIR/sample/gradlew.bat" "$DIST_DIR/gradlew.bat"
@@ -62,7 +60,7 @@ kotlin {
     sourceSets {
         val wasmJsMain by getting {
             dependencies {
-                implementation(npm("@boltffi/runtime", "0.30.1"))
+                implementation(npm("@boltffi/runtime", "0.31.0"))
                 $WASM_NPM_DEP
             }
         }
