@@ -44,12 +44,66 @@ functions and assert SVG output and node labels. Native libraries load from bund
 hosts. CI builds and runs all three public API rendering tests in the same job
 on each host, using the locally generated Kotlin sources and JNI library. CI does
 not upload or download Actions artifacts; the Android/Wasm build runs separately.
+PR CI runs for build sources, scripts, templates, shared Actions and ci.yml changes.
+Changes confined to publish.yml or documentation do not trigger the build/test jobs.
 On version tags, the publishing workflow uploads only native resources from each
 host, merges them and publishes to Maven Central/npm without repeating tests.
 `scripts/check-desktop-package.py <jar>` validates a complete four-platform release
 JAR; it is not invoked on the single-platform JARs built by CI.
 Pushing a `v<version>` tag starts publication. Do not overwrite existing releases:
 0.0.1-alpha2 contains only Linux x86_64 and this fix requires a new version.
+
+## Release authentication
+
+npm publishes `mermaid-ffi-wasm` using GitHub Actions OIDC, without NPM_TOKEN or
+NODE_AUTH_TOKEN. The publish job runs only in `storytellerF/mermaid-rust-kmp` on a
+GitHub-hosted Ubuntu runner and grants `id-token: write` only to that job. Node
+is constrained to 22.14.0 or newer within Node 22; npm is explicitly installed at
+11.21.0 (Trusted Publishing requires npm >=11.5.1). setup-node does not generate
+an auth-token .npmrc; the public registry is passed explicitly to npm. Generated
+package metadata is updated before publication with the upstream Git repository
+URL required for provenance. Existing Rust, BoltFFI, npm and Gradle caches remain.
+
+Before a release, a package maintainer must open
+[the npm package settings](https://www.npmjs.com/package/mermaid-ffi-wasm/access)
+and add a GitHub Actions Trusted Publisher with these exact, case-sensitive fields:
+
+| Field | Value |
+| --- | --- |
+| Package | `mermaid-ffi-wasm` |
+| Organization or user | `storytellerF` |
+| Repository | `mermaid-rust-kmp` |
+| Workflow filename | `publish.yml` (not its full path) |
+| Environment name | Leave blank; the job declares no GitHub environment |
+| Allowed actions | Enable direct `npm publish` |
+
+The package already exists (0.0.1-alpha2); no bootstrap publication is needed.
+Current npm settings default new connections to staged publishing, so explicitly
+allow direct publication to match this workflow. A new connection must complete
+its first successful publish within two days; recreate it if it expires. If a
+GitHub environment is added later, update the npm binding to match exactly.
+After a successful OIDC release, remove the unused GitHub NPM_TOKEN secret and
+revoke its npm token; consider npm's "Require two-factor authentication and disallow
+tokens" setting. Never put tokens in source or logs.
+
+The v0.0.1-alpha3 run failed at npm with E404 on the registry PUT. This does not
+prove token expiry: package access/authentication also needs verification. All
+four native builds succeeded and Maven publication was skipped, so this run
+provides no evidence of a Maven authentication failure. Do not rerun the old tag
+expecting new workflow code; release a new, unpublished version after merging and
+configuring the binding, checking npm and Central for existing versions first.
+
+Maven Central has independent authentication. Its current official Portal API
+documents Portal user tokens, not npm-style GitHub OIDC Trusted Publishing.
+Keep CENTRAL_USERNAME and CENTRAL_PASSWORD as the two components of a Portal
+user token, plus GPG_PRIVATE_KEY and GPG_PASSPHRASE for artifact signing. These
+are not the interactive account password or legacy OSSRH credentials. No Maven
+credentials are rotated by this migration; verify them separately if that step
+fails in a future release.
+
+References: [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers/),
+[npm trust prerequisites](https://docs.npmjs.com/cli/v11/commands/npm-trust/), and
+[Central Portal API authentication](https://central.sonatype.org/publish/publish-portal-api/).
 
 ## Renderer Wasm timing patch
 

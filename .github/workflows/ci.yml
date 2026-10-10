@@ -7,7 +7,7 @@ on:
     paths:
       - 'mermaid-ffi/**'
       - 'patch-ffi.sh'
-      - '.github/workflows/**'
+      - '.github/workflows/ci.yml'
       - '.github/actions/**'
       - 'scripts/**'
       - 'desktop-test/**'
