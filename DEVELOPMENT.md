@@ -44,6 +44,8 @@ functions and assert SVG output and node labels. Native libraries load from bund
 hosts. CI builds and runs all three public API rendering tests in the same job
 on each host, using the locally generated Kotlin sources and JNI library. CI does
 not upload or download Actions artifacts; the Android/Wasm build runs separately.
+PR CI runs for build sources, scripts, templates, shared Actions and ci.yml changes.
+Changes confined to publish.yml or documentation do not trigger the build/test jobs.
 On version tags, the publishing workflow uploads only native resources from each
 host, merges them and publishes to Maven Central/npm without repeating tests.
 `scripts/check-desktop-package.py <jar>` validates a complete four-platform release
