@@ -18,7 +18,6 @@ runs:
         workspaces: mermaid-ffi -> target
         cache-bin: false
         shared-key: ${{ runner.os }}-${{ runner.arch }}-${{ inputs.build-key }}
-        key: ${{ hashFiles('mermaid-ffi/Cargo.lock', 'mermaid-ffi/Cargo.toml', 'scripts/prepare-renderer.py', 'templates/renderer/**', 'scripts/build-desktop-jni.py') }}
     - name: Identify CLI toolchain
       id: toolchain
       shell: python

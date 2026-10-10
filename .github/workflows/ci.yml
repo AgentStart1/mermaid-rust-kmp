@@ -8,6 +8,7 @@ on:
       - 'mermaid-ffi/**'
       - 'patch-ffi.sh'
       - '.github/workflows/**'
+      - '.github/actions/**'
       - 'scripts/**'
       - 'desktop-test/**'
       - 'templates/**'
