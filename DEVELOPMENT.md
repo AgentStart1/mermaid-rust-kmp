@@ -1,6 +1,6 @@
 # Building and verification
 
-Use Rust stable, JDK 21, Python 3 and BoltFFI CLI 0.30.1. The Rust dependency remains
+Use Rust stable, JDK 21, Python 3.12 and BoltFFI CLI 0.30.1. The Rust dependency remains
 BoltFFI 0.30 (Cargo.lock resolves 0.30.1); the CLI and Wasm runtime use 0.30.1 too.
 Windows needs Visual Studio C++ build tools and clang-cl; macOS needs Xcode tools.
 Android/Wasm builds additionally need Android SDK/NDK, Node/npm, TypeScript and wasm-opt.
@@ -69,3 +69,8 @@ against flowchart and sequence diagrams with `node scripts/test-wasm-rendering.m
 `scripts/install-binaryen.py` downloads official Binaryen 133 and verifies its
 release SHA-256. CI adds its bin directory to PATH automatically. The crates.io
 wasm-opt 0.116 tool does not understand BoltFFI 0.30.1's --enable-bulk-memory-opt.
+
+The generated publishing project uses AGP 8.13.2 and its own checksum-pinned Gradle
+8.13 wrapper, compatible with Kotlin 2.3.21. Desktop tests keep the sample wrapper.
+Use the generated project's wrapper for its build; do not invoke the sample wrapper
+against the Android publishing project.
