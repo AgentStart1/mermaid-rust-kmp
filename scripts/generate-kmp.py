@@ -16,6 +16,7 @@ def generate(boltffi="boltffi"):
         shutil.copyfile(templates / name, DIST / name)
     for platform, name in (("common", "MermaidFfi.kt"), ("jvm", "MermaidFfiJvmActual.kt"), ("android", "MermaidFfiAndroidActual.kt")):
         kotlin = DIST / f"src/{platform}Main/kotlin"
+        kotlin.resolve().relative_to(DIST.resolve())
         if kotlin.exists():
             shutil.rmtree(kotlin)
         package = kotlin / "com/storyteller_f/mermaid_kmp"
