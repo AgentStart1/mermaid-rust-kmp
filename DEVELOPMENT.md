@@ -125,3 +125,7 @@ and validate dependencies on every run; node_modules and generated packages are
 not cached. setup-node's automatic package-manager caching is disabled to avoid
 an overlapping provider. PR caches are scoped to the PR merge ref, so a rerun of
 the same PR can verify warm hits; release tags cannot consume a PR-only cache.
+
+Provider references: [Rust cache inputs and keying](https://github.com/Swatinem/rust-cache),
+[official dependency cache](https://github.com/actions/cache), and
+[setup-java Gradle caching](https://github.com/actions/setup-java#caching-packages-dependencies).
