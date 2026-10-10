@@ -54,7 +54,7 @@ jobs:
         run: |
           bash sample/gradlew -p desktop-test check jvmJar --console=plain
 
-  build:
+  android-wasm-build:
     runs-on: ubuntu-latest
 
     steps:
