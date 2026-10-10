@@ -41,10 +41,13 @@ functions and assert SVG output and node labels. Native libraries load from bund
 `native/<host>` resources without configuring java.library.path.
 
 `ci.yml` and `publish.yml` each build the four desktop targets on their respective
-hosts. CI downloads and merges those artifacts, runs rendering tests on each host
-and checks that the JVM JAR contains all four nonempty JNI libraries, alongside
-the Android/Wasm build. On version tags, the publishing workflow merges its native
-artifacts and publishes to Maven Central/npm without repeating tests.
+hosts. CI builds and runs all three public API rendering tests in the same job
+on each host, using the locally generated Kotlin sources and JNI library. CI does
+not upload or download Actions artifacts; the Android/Wasm build runs separately.
+On version tags, the publishing workflow uploads only native resources from each
+host, merges them and publishes to Maven Central/npm without repeating tests.
+`scripts/check-desktop-package.py <jar>` validates a complete four-platform release
+JAR; it is not invoked on the single-platform JARs built by CI.
 Pushing a `v<version>` tag starts publication. Do not overwrite existing releases:
 0.0.1-alpha2 contains only Linux x86_64 and this fix requires a new version.
 
@@ -77,14 +80,13 @@ The generated publishing project uses AGP 8.13.2 and its own checksum-pinned Gra
 Use the generated project's wrapper for its build; do not invoke the sample wrapper
 against the Android publishing project.
 
-Desktop artifacts contain only host-specific JNI resources. A separate single
-Linux-generated `kmp-jvm-bindings` artifact supplies portable common/JVM Kotlin
-sources to tests. Never merge multiple copies of Kotlin sources: parallel artifact
-extraction can overwrite files concurrently, especially across LF/CRLF checkouts.
-The publishing job generates its own sources and merges only native libraries.
+Release desktop artifacts contain only host-specific JNI resources. Each CI host
+generates its own Kotlin sources for its rendering tests. The publishing job also
+generates its own sources and merges only native libraries, avoiding concurrent
+extraction of duplicate Kotlin files across LF/CRLF checkouts.
 
 Desktop macOS builds use a fixed 15.0 deployment target for both architectures.
 The build passes MACOSX_DEPLOYMENT_TARGET to Rust and the binding generator,
 and -mmacosx-version-min=15.0 to the JNI compiler/linker. It verifies the final
-dylib deployment version with otool before uploading artifacts. Builds and
+dylib deployment version with otool after building. Builds and
 rendering tests run on macOS 15, matching the minimum supported version.
