@@ -53,6 +53,11 @@ JAR; it is not invoked on the single-platform JARs built by CI.
 Pushing a `v<version>` tag starts publication. Do not overwrite existing releases:
 0.0.1-alpha2 contains only Linux x86_64 and this fix requires a new version.
 
+Prerelease versions (for example, 0.0.1-alpha4) publish to the npm `next` channel;
+stable versions publish to `latest`. The workflow explicitly passes `--tag` for
+both, as npm 11 requires a tag when publishing prereleases. Build metadata does
+not affect channel selection. The version itself remains unchanged.
+
 ## Release authentication
 
 npm publishes `mermaid-ffi-wasm` using GitHub Actions OIDC, without NPM_TOKEN or
