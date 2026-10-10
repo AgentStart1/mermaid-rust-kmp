@@ -13,7 +13,7 @@ NPM_VERSION="${1:-}"
 if [ -n "$NPM_VERSION" ]; then
     WASM_NPM_DEP="implementation(npm(\"mermaid-ffi-wasm\", \"$NPM_VERSION\"))"
 else
-    WASM_PKG_ABS="$(cd "$WASM_PKG_DIR" 2>/dev/null && pwd)" || WASM_PKG_ABS=""
+    WASM_PKG_ABS="$(python -c 'import pathlib, sys; print(pathlib.Path(sys.argv[1]).resolve().as_posix())' "$WASM_PKG_DIR")"
     if [ -n "$WASM_PKG_ABS" ]; then
         WASM_NPM_DEP="implementation(npm(\"mermaid-ffi-wasm\", \"file:$WASM_PKG_ABS\"))"
     else
@@ -32,7 +32,7 @@ cp "$SCRIPT_DIR/sample/gradlew.bat" "$DIST_DIR/gradlew.bat"
 chmod +x "$DIST_DIR/gradlew"
 mkdir -p "$DIST_DIR/gradle/wrapper"
 cp "$SCRIPT_DIR/sample/gradle/wrapper/gradle-wrapper.jar" "$DIST_DIR/gradle/wrapper/"
-cp "$SCRIPT_DIR/sample/gradle/wrapper/gradle-wrapper.properties" "$DIST_DIR/gradle/wrapper/"
+cp "$SCRIPT_DIR/templates/kmp/gradle-wrapper.properties" "$DIST_DIR/gradle/wrapper/"
 
 # 2. Patch settings.gradle.kts for wasmJs Node.js repository compatibility
 SETTINGS_FILE="$DIST_DIR/settings.gradle.kts"
@@ -60,7 +60,7 @@ kotlin {
     sourceSets {
         val wasmJsMain by getting {
             dependencies {
-                implementation(npm("@boltffi/runtime", "0.26.1"))
+                implementation(npm("@boltffi/runtime", "0.31.0"))
                 $WASM_NPM_DEP
             }
         }

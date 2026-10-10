@@ -7,43 +7,131 @@ on:
     paths:
       - 'mermaid-ffi/**'
       - 'patch-ffi.sh'
-      - '.github/workflows/ci.yml'
+      - '.github/workflows/**'
+      - '.github/actions/**'
+      - 'scripts/**'
+      - 'desktop-test/**'
+      - 'templates/**'
+
+env:
+  CARGO_TERM_COLOR: never
 
 jobs:
-  build:
+  desktop-native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            host: linux-x86_64
+          - runner: windows-latest
+            host: windows-x86_64
+          - runner: macos-15-intel
+            host: darwin-x86_64
+          - runner: macos-15
+            host: darwin-aarch64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          java-version: '21'
+          distribution: temurin
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install Linux compiler
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y clang
+      - name: Cache Rust and binding generator
+        uses: ./.github/actions/build-cache
+        with:
+          build-key: desktop-${{ matrix.host }}
+      - name: Build desktop JNI library
+        run: python scripts/build-desktop-jni.py
+      - name: Test package validation
+        run: python -m unittest discover -s scripts -p 'test_*.py'
+      - name: Set up Gradle and dependency cache
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-provider: enhanced
+          # PR merge refs and release tags need writable caches too.
+          cache-read-only: false
+
+      - name: Test generated Kotlin APIs with local JNI library
+        shell: bash
+        run: |
+          bash sample/gradlew -p desktop-test check jvmJar --console=plain
+
+  android-wasm-build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
 
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          package-manager-cache: false
+
       - name: Set up JDK 21
         uses: actions/setup-java@v6
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: 'gradle'
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android,i686-linux-android,wasm32-unknown-unknown
 
-      - name: Install clang, boltffi, and wasm-opt
+      - name: Cache Rust and binding generator
+        uses: ./.github/actions/build-cache
+        with:
+          build-key: android-wasm
+
+      - name: Cache npm downloads
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.npm
+          key: npm-v1-${{ runner.os }}-${{ runner.arch }}-node22-${{ hashFiles('scripts/build-wasm.py', 'mermaid-ffi/boltffi.toml', 'patch-ffi.sh', 'templates/kmp/**') }}
+          restore-keys: |
+            npm-v1-${{ runner.os }}-${{ runner.arch }}-node22-
+
+      - name: Install clang and Binaryen
         run: |
           sudo apt-get update && sudo apt-get install -y clang
-          cargo install boltffi_cli --version 0.26.1
-          cargo install wasm-opt
-          npm install -g typescript
+          python scripts/install-binaryen.py
 
       - name: Build native libraries and generate bindings
         working-directory: mermaid-ffi
         run: |
-          boltffi pack kmp --release --experimental
-          boltffi pack wasm --release
+          python ../scripts/generate-kmp.py
+          boltffi pack android --release --deny-skipped
+          python ../scripts/build-desktop-jni.py
+          python ../scripts/build-wasm.py
 
       - name: Patch generated files
         run: ./patch-ffi.sh
+
+      - name: Test actual Wasm rendering
+        run: |
+          npm install --prefix mermaid-ffi/dist/wasm/pkg --ignore-scripts
+          node scripts/test-wasm-rendering.mjs
+
+      - name: Set up Gradle and dependency cache
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-provider: enhanced
+          # PR merge refs and release tags need writable caches too.
+          cache-read-only: false
 
       - name: Build KMP project
         working-directory: mermaid-ffi/dist/kotlin-multiplatform

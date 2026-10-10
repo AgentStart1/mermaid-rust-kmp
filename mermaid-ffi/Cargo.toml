@@ -9,3 +9,6 @@ crate-type = ["cdylib", "staticlib"]
 [dependencies]
 boltffi = "0.31"
 mermaid-rs-renderer = { version = "0.3.1", default-features = false }
+
+[patch.crates-io]
+mermaid-rs-renderer = { path = "../build/renderer/mermaid-rs-renderer-0.3.1" }

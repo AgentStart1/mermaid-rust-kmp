@@ -11,3 +11,14 @@ output = "dist/wasm"
 
 [targets.wasm.npm]
 package_name = "mermaid-ffi-wasm"
+
+[targets.android.kotlin]
+package = "com.storyteller_f.mermaid_kmp.jvm"
+module_name = "MermaidFfi"
+output = "dist/kotlin-jni"
+
+[targets.android.pack]
+output = "dist/kotlin-multiplatform/src/androidMain/jniLibs"
+
+[targets.wasm.typescript]
+runtime_version = "0.31.0"

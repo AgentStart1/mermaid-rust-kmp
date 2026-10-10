@@ -1,0 +1,62 @@
+name: Cache Rust builds and BoltFFI CLI
+description: Restore host-specific Cargo dependencies and a version-checked isolated CLI
+inputs:
+  build-key:
+    description: Host architecture and target set
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Prepare patched renderer for Cargo metadata
+      shell: bash
+      run: python scripts/prepare-renderer.py
+    - name: Cache Cargo dependencies and target
+      id: rust-cache
+      uses: Swatinem/rust-cache@63fed3e2fecf6f7b51dc6f043341b79ef82a9ae7 # v2.9.2
+      with:
+        prefix-key: rust-v1-${{ hashFiles('scripts/prepare-renderer.py', 'templates/renderer/**', 'scripts/build-desktop-jni.py') }}
+        workspaces: mermaid-ffi -> target
+        cache-bin: false
+        shared-key: ${{ runner.os }}-${{ runner.arch }}-${{ inputs.build-key }}
+    - name: Identify CLI toolchain
+      id: toolchain
+      shell: python
+      run: |
+        import hashlib, os, subprocess
+        identity = subprocess.check_output(['rustc', '-vV'])
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+            output.write('hash=' + hashlib.sha256(identity).hexdigest() + '\n')
+    - name: Cache isolated BoltFFI CLI
+      id: cli-cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ runner.temp }}/boltffi-cli/bin
+        key: boltffi-cli-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.hash }}-0.31.0
+    - name: Verify or install matching binding generator
+      shell: python
+      env:
+        CLI_ROOT: ${{ runner.temp }}/boltffi-cli
+      run: |
+        import os, pathlib, re, subprocess
+        root = pathlib.Path(os.environ['CLI_ROOT'])
+        executable = root / 'bin' / ('boltffi.exe' if os.name == 'nt' else 'boltffi')
+        def matches():
+            if not executable.is_file():
+                return False
+            result = subprocess.run([str(executable), '--version'], capture_output=True, text=True)
+            return result.returncode == 0 and re.fullmatch(r'boltffi(?:_cli)? 0\.31\.0\s*', result.stdout) is not None
+        if matches():
+            print('BoltFFI CLI cache verified: 0.31.0; skipping cargo install', flush=True)
+        else:
+            subprocess.run(['cargo', 'install', 'boltffi_cli', '--version', '0.31.0', '--locked', '--force', '--root', str(root)], check=True)
+            if not matches():
+                raise RuntimeError('Installed BoltFFI CLI did not report version 0.31.0')
+        with open(os.environ['GITHUB_PATH'], 'a') as output:
+            output.write(str(root / 'bin') + '\n')
+    - name: Report cache results
+      shell: bash
+      env:
+        RUST_HIT: ${{ steps.rust-cache.outputs.cache-hit }}
+        CLI_HIT: ${{ steps.cli-cache.outputs.cache-hit }}
+      run: |
+        echo "Rust cache exact hit: $RUST_HIT; BoltFFI CLI cache exact hit: $CLI_HIT" >> "$GITHUB_STEP_SUMMARY"
