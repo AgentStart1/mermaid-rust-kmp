@@ -22,6 +22,13 @@ def run(args, **kwargs):
     return result
 
 
+def native_link_libraries(output):
+    clean = re.sub(r"\x1b\[[0-?]*[ -/]*[@-~]", "", output)
+    match = re.search(r"native-static-libs: (.+)", clean)
+    if not match:
+        raise RuntimeError("Rust did not report native link dependencies")
+    return shlex.split(match.group(1))
+
 def build(boltffi):
     system = platform.system()
     machine = platform.machine().lower()
@@ -50,7 +57,7 @@ def build(boltffi):
     run([boltffi, "generate", "kmp", "--experimental"])
     c_dir = DIST / "src/jvmMain/c"
     run([boltffi, "generate", "header", "-o", str(c_dir)])
-    result = run(["cargo", "rustc", "--release", "--locked", "--lib", "--", "--print", "native-static-libs"], capture_output=True, text=True)
+    result = run(["cargo", "rustc", "--release", "--locked", "--lib", "--", "--print", "native-static-libs"], capture_output=True, text=True, encoding="utf-8", errors="replace")
     match = re.search(r"native-static-libs: (.+)", result.stderr)
     if not match:
         raise RuntimeError("Rust did not report native link dependencies")
