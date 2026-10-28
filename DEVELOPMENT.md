@@ -47,6 +47,11 @@ hosts. CI builds and runs all three public API rendering tests in the same job
 on each host, using the locally generated Kotlin sources and JNI library. CI does
 not upload or download Actions artifacts; the Android/Wasm build runs separately.
 PR CI runs for build sources, scripts, templates, shared Actions and ci.yml changes.
+Pushes to main with the same path filters run Linux desktop tests and the
+Android/Wasm build to produce a shared cache baseline. Windows and both macOS
+hosts remain PR-only in CI to limit recurring prewarming cost. Main runs use the
+same jobs, target keys, binding generation and rendering checks as PRs; they do
+not publish packages or require release credentials.
 Changes confined to publish.yml or documentation do not trigger the build/test jobs.
 On version tags, the publishing workflow uploads only native resources from each
 host, merges them and publishes to Maven Central/npm without repeating tests.
@@ -181,8 +186,10 @@ desktop hosts (including the two macOS architectures) and Android/Wasm jobs.
 It restores the closest available state and deduplicates shared dependencies.
 `cache-read-only: false` allows CI to save PR merge-ref caches and publishing to
 save tag caches; PR entries can be reused by subsequent runs of that PR, but are
-not accessible to release tags. The post-action stops Gradle daemons before
-cleanup and saving, including on Windows, so no separate `--stop` is required.
+not accessible to other PRs or release tags. Main entries are available to new
+PRs and tags when their platform and cache keys are compatible. The post-action
+stops Gradle daemons before cleanup and saving, including on Windows, so no
+separate `--stop` is required.
 Do not add setup-java caching or an actions/cache entry for Gradle User Home.
 Gradle cache restore/save details are recorded in action logs and job summaries.
 
@@ -194,7 +201,31 @@ a same-platform Node 22 fallback reuses verified downloads. Installs still resol
 and validate dependencies on every run; node_modules and generated packages are
 not cached. setup-node's automatic package-manager caching is disabled to avoid
 an overlapping provider. PR caches are scoped to the PR merge ref, so a rerun of
-the same PR can verify warm hits; release tags cannot consume a PR-only cache.
+the same PR can verify warm hits; new PRs and release tags can instead restore
+compatible Linux downloads from main.
+
+### Verifying the main cache baseline
+
+In a fork, enable Actions and push this CI configuration to its default `main`
+branch without overwriting unrelated commits. An initially empty cache exercises
+the cold path: both Linux jobs must generate bindings and pass their builds and
+rendering checks, then save caches under `refs/heads/main`. Open a new PR against
+that fork's main after this run completes. Use its logs and the cache list to
+confirm that Rust and BoltFFI restore main entries and that setup-gradle restores
+main state/dependencies. Gradle's per-commit state normally uses a fallback match;
+an exact-hit boolean alone does not establish whether anything was restored.
+Check npm restoration in the Android/Wasm job as well. Do not clear upstream
+caches or skip binding generation to demonstrate hits.
+
+Compare cold-main and new-PR job/step durations, restored/saved archive sizes and
+cache transfer time. Also compare aggregate runner time with the full PR matrix,
+and distinguish that cost from elapsed critical-path time. The initial scope is
+Linux desktop plus Android/Wasm, not a full release build. Keep Windows/macOS out
+of main prewarming unless measurements justify their extra runner cost; narrow
+the Linux scope too if recurring builds and cache transfers outweigh PR savings.
+Record run links and measurements in the change's PR so the result can be
+rechecked after toolchain or dependency updates. A single pair of runs is evidence
+of reuse, not a guarantee of future performance.
 
 Provider references: [Rust cache inputs and keying](https://github.com/Swatinem/rust-cache),
 [official dependency cache](https://github.com/actions/cache), and
