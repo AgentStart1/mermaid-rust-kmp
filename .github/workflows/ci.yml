@@ -1,6 +1,17 @@
 name: CI
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'mermaid-ffi/**'
+      - 'patch-ffi.sh'
+      - '.github/workflows/ci.yml'
+      - '.github/actions/**'
+      - 'scripts/**'
+      - 'desktop-test/**'
+      - 'templates/**'
   pull_request:
     branches:
       - main
@@ -13,6 +24,13 @@ on:
       - 'desktop-test/**'
       - 'templates/**'
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   CARGO_TERM_COLOR: never
 
@@ -21,15 +39,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - runner: ubuntu-latest
-            host: linux-x86_64
-          - runner: windows-latest
-            host: windows-x86_64
-          - runner: macos-15-intel
-            host: darwin-x86_64
-          - runner: macos-15
-            host: darwin-aarch64
+        # Start with Linux on main; PRs retain all four desktop hosts.
+        include: ${{ fromJSON(github.event_name == 'push' &&
+          '[{"runner":"ubuntu-latest","host":"linux-x86_64"}]' ||
+          '[{"runner":"ubuntu-latest","host":"linux-x86_64"},
+            {"runner":"windows-latest","host":"windows-x86_64"},
+            {"runner":"macos-15-intel","host":"darwin-x86_64"},
+            {"runner":"macos-15","host":"darwin-aarch64"}]') }}
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v7
@@ -56,7 +72,7 @@ jobs:
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
         with:
           cache-provider: enhanced
-          # PR merge refs and release tags need writable caches too.
+          # Save the main baseline as well as same-PR rerun caches.
           cache-read-only: false
 
       - name: Test generated Kotlin APIs with local JNI library
@@ -130,7 +146,7 @@ jobs:
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
         with:
           cache-provider: enhanced
-          # PR merge refs and release tags need writable caches too.
+          # Save the main baseline as well as same-PR rerun caches.
           cache-read-only: false
 
       - name: Build KMP project
