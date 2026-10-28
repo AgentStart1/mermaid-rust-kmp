@@ -51,7 +51,8 @@ Pushes to main with the same path filters run Linux desktop tests and the
 Android/Wasm build to produce a shared cache baseline. Windows and both macOS
 hosts remain PR-only in CI to limit recurring prewarming cost. Main runs use the
 same jobs, target keys, binding generation and rendering checks as PRs; they do
-not publish packages or require release credentials.
+not publish packages or require release credentials. A newer run on the same
+branch or PR cancels an unfinished run to avoid redundant prewarming and tests.
 Changes confined to publish.yml or documentation do not trigger the build/test jobs.
 On version tags, the publishing workflow uploads only native resources from each
 host, merges them and publishes to Maven Central/npm without repeating tests.
