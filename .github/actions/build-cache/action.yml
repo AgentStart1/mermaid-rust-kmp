@@ -31,7 +31,7 @@ runs:
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ${{ runner.temp }}/boltffi-cli/bin
-        key: boltffi-cli-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.hash }}-0.31.0
+        key: boltffi-cli-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.hash }}-0.32.0
     - name: Verify or install matching binding generator
       shell: python
       env:
@@ -44,13 +44,13 @@ runs:
             if not executable.is_file():
                 return False
             result = subprocess.run([str(executable), '--version'], capture_output=True, text=True)
-            return result.returncode == 0 and re.fullmatch(r'boltffi(?:_cli)? 0\.31\.0\s*', result.stdout) is not None
+            return result.returncode == 0 and re.fullmatch(r'boltffi(?:_cli)? 0\.32\.0\s*', result.stdout) is not None
         if matches():
-            print('BoltFFI CLI cache verified: 0.31.0; skipping cargo install', flush=True)
+            print('BoltFFI CLI cache verified: 0.32.0; skipping cargo install', flush=True)
         else:
-            subprocess.run(['cargo', 'install', 'boltffi_cli', '--version', '0.31.0', '--locked', '--force', '--root', str(root)], check=True)
+            subprocess.run(['cargo', 'install', 'boltffi_cli', '--version', '0.32.0', '--locked', '--force', '--root', str(root)], check=True)
             if not matches():
-                raise RuntimeError('Installed BoltFFI CLI did not report version 0.31.0')
+                raise RuntimeError('Installed BoltFFI CLI did not report version 0.32.0')
         with open(os.environ['GITHUB_PATH'], 'a') as output:
             output.write(str(root / 'bin') + '\n')
     - name: Report cache results
