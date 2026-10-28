@@ -21,4 +21,4 @@ output = "dist/kotlin-jni"
 output = "dist/kotlin-multiplatform/src/androidMain/jniLibs"
 
 [targets.wasm.typescript]
-runtime_version = "0.31.0"
+runtime_version = "0.32.0"

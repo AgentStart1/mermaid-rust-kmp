@@ -19,9 +19,9 @@ checksum = "7f202df86484c868dbad7eaa557ef785d5c66295e41b460ef922eca0723b842c"
 
 [[package]]
 name = "boltffi"
-version = "0.31.0"
+version = "0.32.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab5c4e403028eb5bcc2a8adbd188ecff149dd7aa3d5c3244ad8f5bd3b4f722ac"
+checksum = "8e05d80c1712d60c40e8a73a8adf4afdf3f10f5d2b6b3a43120890f7a9a7cc06"
 dependencies = [
  "boltffi_core",
  "boltffi_macros",
@@ -29,18 +29,18 @@ dependencies = [
 
 [[package]]
 name = "boltffi_ast"
-version = "0.31.0"
+version = "0.32.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "691c744349eab714cae35af917ccb7db031ebc23eb358bbae3254605ee0accbf"
+checksum = "1171e857538dc76554e541d778bb7f864d5f61be8d1d1c3b7ffb046ee749cc1e"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "boltffi_binding"
-version = "0.31.0"
+version = "0.32.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00160cde65f8a703049cf814815a7176ebab7175e4a8475a24f1ed06ff36b941"
+checksum = "7e45f0ab068ebfc69438e70c03530156d20287f6123a08933d5e49d55ea1d07d"
 dependencies = [
  "boltffi_ast",
  "serde",
@@ -49,9 +49,9 @@ dependencies = [
 
 [[package]]
 name = "boltffi_core"
-version = "0.31.0"
+version = "0.32.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f57ba85a8dbd747c1d515f49009726b68f8747e4e1391551a7b3e7e6e9ccf866"
+checksum = "cde8e4d66ab470fc0e6fd3d1b631b34c8927d52e0c3e2273f314c92f705d42d2"
 dependencies = [
  "boltffi_macros",
  "url",
@@ -60,9 +60,9 @@ dependencies = [
 
 [[package]]
 name = "boltffi_macros"
-version = "0.31.0"
+version = "0.32.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57510b047b08637e820d3c076d72d6cb6317f74c65891997b523e8fb3a3341e1"
+checksum = "9d93561b4c4510cde1a6d07208c8921b00b7d40b026fe5738574f0bbf131df3f"
 dependencies = [
  "boltffi_ast",
  "boltffi_binding",
@@ -72,15 +72,16 @@ dependencies = [
  "quote",
  "rustc_lexer",
  "serde",
+ "serde_json",
  "syn",
  "toml",
 ]
 
 [[package]]
 name = "boltffi_scan"
-version = "0.31.0"
+version = "0.32.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "292549f7564f1b1d15c5cff32338b1dbe813b1a94205957e4edc7ec3b5bdf7d9"
+checksum = "c5d9a04ddd4cc66c78ac83f1f9e8606c173f19c22733aff09c84cb0ffe832e8a"
 dependencies = [
  "boltffi_ast",
  "proc-macro2",

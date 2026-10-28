@@ -1,5 +1,7 @@
 use boltffi::*;
 
+boltffi::scaffolding!();
+
 fn unwrap_render<E: std::fmt::Display>(result: Result<String, E>) -> String {
     match result {
         Ok(svg) => svg,

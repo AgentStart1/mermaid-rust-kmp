@@ -12,7 +12,7 @@ CRATE = ROOT / "mermaid-ffi"
 def build(boltffi):
     subprocess.run([sys.executable, str(ROOT / "scripts/prepare-renderer.py")], check=True)
     npm = ["cmd", "/d", "/c", "npm"] if platform.system() == "Windows" else ["npm"]
-    subprocess.run([*npm, "install", "--prefix", str(CRATE / "dist/wasm"), "--no-save", "--package-lock=false", "typescript@5.9.3", "@types/node@22.19.0", "@boltffi/runtime@0.31.0"], cwd=CRATE, check=True)
+    subprocess.run([*npm, "install", "--prefix", str(CRATE / "dist/wasm"), "--no-save", "--package-lock=false", "typescript@5.9.3", "@types/node@22.19.0", "@boltffi/runtime@0.32.0"], cwd=CRATE, check=True)
     environment = os.environ.copy()
     environment["PATH"] = str(CRATE / "dist/wasm/node_modules/.bin") + os.pathsep + environment.get("PATH", "")
     subprocess.run([boltffi, "pack", "wasm", "--release", "--deny-skipped"], cwd=CRATE, env=environment, check=True)
