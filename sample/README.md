@@ -1,46 +1,37 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop (JVM).
+这是面向 Android、iOS、Web 和 Desktop（JVM）的 Kotlin Multiplatform 项目。
 
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+* [/iosApp](./iosApp/iosApp) 包含 iOS 应用。即使通过 Compose Multiplatform 共享 UI，iOS 应用仍然需要此入口。项目的 SwiftUI 代码也应放在这里。
 
-* [/shared](./shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./shared/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./shared/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./shared/src/jvmMain/kotlin)
-    folder is the appropriate location.
+* [/shared](./shared/src) 存放多个 Compose Multiplatform 应用共用的代码，包含若干子目录：
+  - [commonMain](./shared/src/commonMain/kotlin) 存放所有目标共用的代码。
+  - 其他目录存放仅针对目录名所示平台编译的 Kotlin 代码。例如，Kotlin 应用的 iOS 部分需要调用 Apple CoreCrypto 时，应放在 [iosMain](./shared/src/iosMain/kotlin)；Desktop（JVM）专用部分则放在 [jvmMain](./shared/src/jvmMain/kotlin)。
 
-### Running the apps
+### 运行应用
 
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
+使用 IDE 工具栏运行控件提供的运行配置，也可以使用以下命令和选项：
 
-- Android app: `./gradlew :androidApp:assembleDebug`
-- Desktop app:
-  - Hot reload: `./gradlew :desktopApp:hotRun --auto`
-  - Standard run: `./gradlew :desktopApp:run`
-- Web app:
-  - Wasm target (faster, modern browsers): `./gradlew :webApp:wasmJsBrowserDevelopmentRun`
-  - JS target (slower, supports older browsers): `./gradlew :webApp:jsBrowserDevelopmentRun`
-- iOS app: open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+- Android 应用：`./gradlew :androidApp:assembleDebug`
+- Desktop 应用：
+  - 热重载：`./gradlew :desktopApp:hotRun --auto`
+  - 常规运行：`./gradlew :desktopApp:run`
+- Web 应用：
+  - Wasm 目标（更快，适用于现代浏览器）：`./gradlew :webApp:wasmJsBrowserDevelopmentRun`
+  - JS 目标（较慢，支持旧浏览器）：`./gradlew :webApp:jsBrowserDevelopmentRun`
+- iOS 应用：在 Xcode 中打开 [/iosApp](./iosApp) 目录并运行。
 
-### Running tests
+### 运行测试
 
-Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
+使用 IDE 编辑器边栏中的运行按钮，或通过 Gradle 任务运行测试：
 
-- Android tests: `./gradlew :shared:testAndroidHostTest`
-- Desktop tests: `./gradlew :shared:jvmTest`
-- Web tests:
-  - Wasm target: `./gradlew :shared:wasmJsTest`
-  - JS target: `./gradlew :shared:jsTest`
-- iOS tests: `./gradlew :shared:iosSimulatorArm64Test`
+- Android 测试：`./gradlew :shared:testAndroidHostTest`
+- Desktop 测试：`./gradlew :shared:jvmTest`
+- Web 测试：
+  - Wasm 目标：`./gradlew :shared:wasmJsTest`
+  - JS 目标：`./gradlew :shared:jsTest`
+- iOS 测试：`./gradlew :shared:iosSimulatorArm64Test`
 
 ---
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
-[Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform),
-[Kotlin/Wasm](https://kotl.in/wasm/)…
+进一步了解 [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)、[Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform)、[Kotlin/Wasm](https://kotl.in/wasm/)……
 
-We would appreciate your feedback on Compose/Web and Kotlin/Wasm in the public Slack channel [#compose-web](https://slack-chats.kotlinlang.org/c/compose-web).
-If you face any issues, please report them on [YouTrack](https://youtrack.jetbrains.com/newIssue?project=CMP).
+欢迎在公开 Slack 频道 [#compose-web](https://slack-chats.kotlinlang.org/c/compose-web) 反馈 Compose/Web 和 Kotlin/Wasm 的使用体验。如果遇到问题，请向 [YouTrack](https://youtrack.jetbrains.com/newIssue?project=CMP) 报告。

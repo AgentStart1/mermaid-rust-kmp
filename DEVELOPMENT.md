@@ -1,10 +1,6 @@
-# Building and verification
+# 构建与验证
 
-Use Rust stable, JDK 21, Python 3.12 and BoltFFI CLI 0.32.0. The Rust dependency,
-CLI and Wasm runtime use BoltFFI 0.32 (locked to 0.32.0). The crate root calls
-`boltffi::scaffolding!()` as required by the 0.32 export macros.
-Windows needs Visual Studio C++ build tools and clang-cl; macOS needs Xcode tools.
-Android/Wasm builds additionally need Android SDK/NDK, Node/npm and Binaryen; the Wasm wrapper installs its TypeScript dependencies.
+使用 Rust stable、JDK 21、Python 3.12 和 BoltFFI CLI 0.32.0。Rust 依赖、CLI 和 Wasm 运行时均使用 BoltFFI 0.32（锁定到 0.32.0）。crate 根按 0.32 导出宏的要求调用 `boltffi::scaffolding!()`。Windows 需要 Visual Studio C++ build tools 和 clang-cl；macOS 需要 Xcode 工具。Android/Wasm 构建还需要 Android SDK/NDK、Node/npm 和 Binaryen；Wasm 封装层会安装自身的 TypeScript 依赖。
 
 ```sh
 cargo install boltffi_cli --version 0.32.0 --locked
@@ -13,15 +9,9 @@ bash sample/gradlew -p desktop-test check jvmJar --console=plain
 python -m unittest discover -s scripts -p 'test_*.py'
 ```
 
-The project uses the Kotlin/JNI path introduced when BoltFFI 0.31.0's
-experimental KMP emitter rejected String parameters:
-`scripts/generate-kmp.py` uses its supported Kotlin/JNI emitter with `--deny-skipped`,
-then assembles the KMP project from `templates/kmp`. Edit those templates rather than
-generated dist files. The common API and JVM facade filename remain compatible;
-generated JNI bindings live in the existing jvm package and are shared with Android.
-JNI glue and headers are generated together by the same generator.
+项目使用 Kotlin/JNI 路径：BoltFFI 0.31.0 的实验性 KMP emitter 拒绝 String 参数时引入了这条路径。`scripts/generate-kmp.py` 使用受支持的 Kotlin/JNI emitter，并传入 `--deny-skipped`，再根据 `templates/kmp` 组装 KMP 项目。应编辑这些模板，而非生成的 dist 文件。通用 API 和 JVM 门面文件名保持兼容；生成的 JNI 绑定位于已有 jvm 包中，与 Android 共用。JNI 桥接代码和头文件由同一个生成器一起生成。
 
-For a full Android/Wasm build:
+完整 Android/Wasm 构建：
 
 ```sh
 python scripts/install-binaryen.py
@@ -37,197 +27,63 @@ cd mermaid-ffi/dist/kotlin-multiplatform
 ./gradlew build -Pversion=0.0.0-local -Pgroup=io.github.storytellerf
 ```
 
-`patch-ffi.sh [npm-version]` adds publishing and Wasm integration. Without a version,
-it uses the local generated npm package. The desktop tests exercise all three public
-functions and assert SVG output and node labels. Native libraries load from bundled
-`native/<host>` resources without configuring java.library.path.
+`patch-ffi.sh [npm-version]` 添加发布和 Wasm 集成。不传版本时，使用本地生成的 npm 包。桌面测试调用全部三个公开函数，并断言 SVG 输出和节点标签。原生库从随包提供的 `native/<host>` 资源加载，无需配置 java.library.path。
 
-`ci.yml` and `publish.yml` each build the four desktop targets on their respective
-hosts. CI builds and runs all three public API rendering tests in the same job
-on each host, using the locally generated Kotlin sources and JNI library. CI does
-not upload or download Actions artifacts; the Android/Wasm build runs separately.
-PR CI runs for build sources, scripts, templates, shared Actions and ci.yml changes.
-Pushes to main with the same path filters run Linux desktop tests and the
-Android/Wasm build to produce a shared cache baseline. Windows and both macOS
-hosts remain PR-only in CI to limit recurring prewarming cost. Main runs use the
-same jobs, target keys, binding generation and rendering checks as PRs; they do
-not publish packages or require release credentials. A newer run on the same
-branch or PR cancels an unfinished run to avoid redundant prewarming and tests.
-Changes confined to publish.yml or documentation do not trigger the build/test jobs.
-On version tags, the publishing workflow uploads only native resources from each
-host, merges them and publishes to Maven Central/npm without repeating tests.
-`scripts/check-desktop-package.py <jar>` validates a complete four-platform release
-JAR; it is not invoked on the single-platform JARs built by CI.
-Pushing a `v<version>` tag starts publication. Do not overwrite existing releases:
-0.0.1-alpha2 contains only Linux x86_64 and this fix requires a new version.
+`ci.yml` 和 `publish.yml` 都在各自宿主机上构建四个桌面目标。CI 在每台宿主机的同一作业中，使用本地生成的 Kotlin 源码和 JNI 库，构建并运行全部三个公开 API 的渲染测试。CI 不上传或下载 Actions artifacts；Android/Wasm 构建单独运行。PR CI 针对构建源码、脚本、模板、共享 Actions 和 ci.yml 的变化执行。对 main 的 push 使用相同路径过滤器，运行 Linux 桌面测试和 Android/Wasm 构建，生成共享缓存基线。为限制持续预热成本，CI 中 Windows 和两个 macOS 宿主仍只在 PR 上运行。Main 使用与 PR 相同的作业、目标键、绑定生成和渲染检查；不发布包，也不需要发布凭据。同一分支或 PR 的新运行会取消尚未完成的旧运行，避免重复预热和测试。仅涉及 publish.yml 或文档的改动不会触发构建和测试作业。版本 tag 的发布工作流只上传各宿主的原生资源，合并后发布到 Maven Central/npm，不重复测试。`scripts/check-desktop-package.py <jar>` 验证完整的四平台发布 JAR，不用于 CI 构建的单平台 JAR。推送 `v<version>` tag 开始发布。不要覆盖已有版本：0.0.1-alpha2 仅包含 Linux x86_64，此修复需要新版本。
 
-Prerelease versions (for example, 0.0.1-alpha4) publish to the npm `next` channel;
-stable versions publish to `latest`. The workflow explicitly passes `--tag` for
-both, as npm 11 requires a tag when publishing prereleases. Build metadata does
-not affect channel selection. The version itself remains unchanged.
+预发布版本（例如 0.0.1-alpha4）发布到 npm 的 `next` 通道，稳定版本发布到 `latest`。工作流为两者显式传入 `--tag`，因为 npm 11 发布预发布版本时要求指定 tag。构建元数据不影响通道选择；版本号本身保持不变。
 
-## Release authentication
+## 发布认证
 
-npm publishes `mermaid-ffi-wasm` using GitHub Actions OIDC, without NPM_TOKEN or
-NODE_AUTH_TOKEN. The publish job runs only in `storytellerF/mermaid-rust-kmp` on a
-GitHub-hosted Ubuntu runner and grants `id-token: write` only to that job. Node
-is constrained to 22.14.0 or newer within Node 22; npm is explicitly installed at
-11.21.0 (Trusted Publishing requires npm >=11.5.1). setup-node does not generate
-an auth-token .npmrc; the public registry is passed explicitly to npm. Generated
-package metadata is updated before publication with the upstream Git repository
-URL required for provenance. Existing Rust, BoltFFI, npm and Gradle caches remain.
+npm 通过 GitHub Actions OIDC 发布 `mermaid-ffi-wasm`，不使用 NPM_TOKEN 或 NODE_AUTH_TOKEN。发布作业只在 `storytellerF/mermaid-rust-kmp` 的 GitHub 托管 Ubuntu runner 上执行，仅该作业获得 `id-token: write`。Node 限定在 Node 22 系列的 22.14.0 或更新版本；npm 显式安装 11.21.0（Trusted Publishing 要求 npm >=11.5.1）。setup-node 不生成带 auth-token 的 .npmrc；公开 registry 显式传给 npm。发布前更新生成包的元数据，加入 provenance 所需的上游 Git 仓库 URL。保留已有 Rust、BoltFFI、npm 和 Gradle 缓存。
 
-Before a release, a package maintainer must open
-[the npm package settings](https://www.npmjs.com/package/mermaid-ffi-wasm/access)
-and add a GitHub Actions Trusted Publisher with these exact, case-sensitive fields:
+发布前，包维护者必须打开 [npm 包设置](https://www.npmjs.com/package/mermaid-ffi-wasm/access)，添加 GitHub Actions Trusted Publisher，并精确填写以下区分大小写的字段：
 
-| Field | Value |
+| 字段 | 值 |
 | --- | --- |
 | Package | `mermaid-ffi-wasm` |
 | Organization or user | `storytellerF` |
 | Repository | `mermaid-rust-kmp` |
-| Workflow filename | `publish.yml` (not its full path) |
-| Environment name | Leave blank; the job declares no GitHub environment |
-| Allowed actions | Enable direct `npm publish` |
+| Workflow filename | `publish.yml`（不含完整路径） |
+| Environment name | 留空；作业没有声明 GitHub environment |
+| Allowed actions | 启用直接 `npm publish` |
 
-The package already exists (0.0.1-alpha2); no bootstrap publication is needed.
-Current npm settings default new connections to staged publishing, so explicitly
-allow direct publication to match this workflow. A new connection must complete
-its first successful publish within two days; recreate it if it expires. If a
-GitHub environment is added later, update the npm binding to match exactly.
-After a successful OIDC release, remove the unused GitHub NPM_TOKEN secret and
-revoke its npm token; consider npm's "Require two-factor authentication and disallow
-tokens" setting. Never put tokens in source or logs.
+包已经存在（0.0.1-alpha2），不需要首次引导发布。npm 当前默认对新连接启用 staged publishing，因此要显式允许直接发布，以匹配工作流。新连接必须在两天内完成首次成功发布；过期后需重新创建。如果以后添加 GitHub environment，必须同步修改 npm 绑定，精确匹配。OIDC 发布成功后，移除未使用的 GitHub NPM_TOKEN secret，并撤销对应 npm token；可考虑 npm 的“Require two-factor authentication and disallow tokens”设置。不得将令牌写入源码或日志。
 
-The v0.0.1-alpha3 run failed at npm with E404 on the registry PUT. This does not
-prove token expiry: package access/authentication also needs verification. All
-four native builds succeeded and Maven publication was skipped, so this run
-provides no evidence of a Maven authentication failure. Do not rerun the old tag
-expecting new workflow code; release a new, unpublished version after merging and
-configuring the binding, checking npm and Central for existing versions first.
+v0.0.1-alpha3 运行在 npm registry PUT 时收到 E404。这不能证明令牌过期，还需核查包访问权限和认证。四个原生构建全部成功，Maven 发布被跳过，因此本次运行没有提供 Maven 认证失败的证据。不要重跑旧 tag 并期待使用新工作流代码；合并并配置绑定后，先检查 npm 和 Central 已存在的版本，再发布一个尚未使用的新版本。
 
-Maven Central has independent authentication. Its current official Portal API
-documents Portal user tokens, not npm-style GitHub OIDC Trusted Publishing.
-Keep CENTRAL_USERNAME and CENTRAL_PASSWORD as the two components of a Portal
-user token, plus GPG_PRIVATE_KEY and GPG_PASSPHRASE for artifact signing. These
-are not the interactive account password or legacy OSSRH credentials. No Maven
-credentials are rotated by this migration; verify them separately if that step
-fails in a future release.
+Maven Central 使用独立认证。其当前官方 Portal API 文档使用 Portal user token，并非 npm 式的 GitHub OIDC Trusted Publishing。保留 CENTRAL_USERNAME 和 CENTRAL_PASSWORD，分别作为 Portal user token 的两个组成部分；同时保留用于构件签名的 GPG_PRIVATE_KEY 和 GPG_PASSPHRASE。它们不是交互登录密码或旧 OSSRH 凭据。本迁移不会轮换 Maven 凭据；未来发布在该步骤失败时，应单独验证。
 
-References: [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers/),
-[npm trust prerequisites](https://docs.npmjs.com/cli/v11/commands/npm-trust/), and
-[Central Portal API authentication](https://central.sonatype.org/publish/publish-portal-api/).
+参考：[npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers/)、[npm 信任前置要求](https://docs.npmjs.com/cli/v11/commands/npm-trust/)、[Central Portal API 认证](https://central.sonatype.org/publish/publish-portal-api/)。
 
-## Renderer Wasm timing patch
+## 渲染器 Wasm 计时补丁
 
-The crates.io renderer 0.3.1 calls std::time::Instant during layout, which panics
-on bare wasm32-unknown-unknown. `scripts/prepare-renderer.py` stages the exact 0.3.1
-crate under ignored `build/renderer`, verifying its original crates.io checksum,
-and replaces three clock imports with `templates/renderer/time.rs`. Native builds
-still use std::time::Instant; Wasm diagnostic timings are zero. Layout and rendering
-logic are unchanged. This avoids wasm-bindgen clock imports in BoltFFI's bare Wasm.
-`generate-kmp.py` prepares this patched dependency automatically. Before running
-Cargo directly from a clean checkout, run `python scripts/prepare-renderer.py`.
-The renderer [upstream timing fix](https://github.com/1jehuang/mermaid-rs-renderer/pull/155)
-is still unmerged; remove the local patch when an appropriate release is available.
+crates.io 的 renderer 0.3.1 在布局期间调用 std::time::Instant，会在裸 wasm32-unknown-unknown 上 panic。`scripts/prepare-renderer.py` 将准确的 0.3.1 crate 暂存到被忽略的 `build/renderer`，核验其原始 crates.io 校验和，再将三处时钟导入替换为 `templates/renderer/time.rs`。原生构建仍使用 std::time::Instant；Wasm 诊断耗时为零。布局和渲染逻辑不变。这样可避免 BoltFFI 裸 Wasm 引入 wasm-bindgen 时钟导入。`generate-kmp.py` 自动准备打过补丁的依赖。干净检出中直接运行 Cargo 前，先执行 `python scripts/prepare-renderer.py`。渲染器的[上游计时修复](https://github.com/1jehuang/mermaid-rs-renderer/pull/155) 尚未合并；有合适发布版本后移除本地补丁。
 
-BoltFFI 0.32.0 includes the generated Node bindings in its npm file list. The
-runtime version is pinned in boltffi.toml and in Kotlin/Wasm dependencies.
-`scripts/build-wasm.py` installs matching local TypeScript, Node types and runtime
-dependencies before packing: 0.32 validates TypeScript strictly in a staging folder.
-CI runs all three APIs against flowchart and sequence diagrams using
-`node scripts/test-wasm-rendering.mjs`.
+BoltFFI 0.32.0 在 npm 文件清单中包含生成的 Node 绑定。运行时版本固定在 boltffi.toml 和 Kotlin/Wasm 依赖中。`scripts/build-wasm.py` 在打包前安装匹配的本地 TypeScript、Node 类型和运行时依赖：0.32 会在暂存目录严格验证 TypeScript。CI 使用 `node scripts/test-wasm-rendering.mjs`，在流程图和时序图上测试全部三个 API。
 
-`scripts/install-binaryen.py` downloads official Binaryen 133 and verifies its
-release SHA-256. CI adds its bin directory to PATH automatically. The crates.io
-wasm-opt 0.116 tool does not understand BoltFFI 0.32.0's --enable-bulk-memory-opt.
+`scripts/install-binaryen.py` 下载官方 Binaryen 133 并核验发布 SHA-256。CI 自动将其 bin 目录加入 PATH。crates.io 的 wasm-opt 0.116 不识别 BoltFFI 0.32.0 的 --enable-bulk-memory-opt。
 
-The generated publishing project uses AGP 8.13.2 and its own checksum-pinned Gradle
-8.13 wrapper, compatible with Kotlin 2.3.21. Desktop tests keep the sample wrapper.
-Use the generated project's wrapper for its build; do not invoke the sample wrapper
-against the Android publishing project.
+生成的发布项目使用 AGP 8.13.2 和独立、固定校验和的 Gradle 8.13 Wrapper，与 Kotlin 2.3.21 兼容。桌面测试继续使用 sample 的 Wrapper。构建生成项目时使用其自身 Wrapper，不要用 sample Wrapper 调用 Android 发布项目。
 
-Release desktop artifacts contain only host-specific JNI resources. Each CI host
-generates its own Kotlin sources for its rendering tests. The publishing job also
-generates its own sources and merges only native libraries, avoiding concurrent
-extraction of duplicate Kotlin files across LF/CRLF checkouts.
+桌面发布产物只包含各宿主专属 JNI 资源。每个 CI 宿主为自己的渲染测试生成 Kotlin 源码。发布作业也自行生成源码，只合并原生库，避免 LF/CRLF 检出并发提取重复 Kotlin 文件。
 
-Desktop macOS builds use a fixed 15.0 deployment target for both architectures.
-The build passes MACOSX_DEPLOYMENT_TARGET to Rust and the binding generator,
-and -mmacosx-version-min=15.0 to the JNI compiler/linker. It verifies the final
-dylib deployment version with otool after building. Builds and
-rendering tests run on macOS 15, matching the minimum supported version.
+macOS 桌面构建对两种架构都固定使用 15.0 部署目标。构建向 Rust 和绑定生成器传入 MACOSX_DEPLOYMENT_TARGET，向 JNI 编译器和链接器传入 -mmacosx-version-min=15.0。构建后通过 otool 验证最终 dylib 的部署版本。构建和渲染测试在 macOS 15 上运行，与最低支持版本一致。
 
-## Actions dependency caches
+## Actions 依赖缓存
 
-Both workflows use `.github/actions/build-cache` after installing Rust stable.
-Swatinem/rust-cache 2.9.2 caches the Cargo registry/git dependencies and
-`mermaid-ffi/target`, with separate OS, runner architecture and desktop versus
-Android/Wasm target-set keys. Its compiler fingerprint and Cargo manifest/lock
-hashes further isolate toolchains and dependencies. Explicit source hashes cover
-the renderer timing patch and JNI build configuration. The checksum-verified
-renderer path patch is prepared before the action runs Cargo metadata; generated
-JNI resources are rebuilt locally rather than restored as CI artifacts.
+两个工作流都在安装 Rust stable 后使用 `.github/actions/build-cache`。Swatinem/rust-cache 2.9.2 缓存 Cargo registry/git 依赖和 `mermaid-ffi/target`，按操作系统、runner 架构，以及桌面与 Android/Wasm 目标集合分别设置键。其编译器指纹和 Cargo manifest/lock 哈希进一步隔离工具链和依赖。显式源码哈希覆盖渲染器计时补丁及 JNI 构建配置。通过校验和验证的 renderer 路径补丁，在 action 运行 Cargo metadata 之前准备；生成的 JNI 资源在本地重建，不作为 CI artifacts 恢复。
 
-BoltFFI CLI 0.32.0 uses an independent actions/cache 6.1.0 entry keyed by OS,
-architecture and the complete rustc toolchain identity. Only the isolated
-`runner.temp/boltffi-cli/bin` is cached, never `~/.cargo/bin` or Rust tools.
-Every restore checks `boltffi --version`; matching binaries skip cargo install,
-and missing or mismatched binaries are installed with the exact locked version.
-Step summaries report Rust and CLI exact cache hits.
+BoltFFI CLI 0.32.0 使用独立的 actions/cache 6.1.0 条目，键包含操作系统、架构和完整 rustc 工具链标识。只缓存隔离的 `runner.temp/boltffi-cli/bin`，不缓存 `~/.cargo/bin` 或 Rust 工具。每次恢复都检查 `boltffi --version`；匹配的二进制跳过 cargo install，缺失或不匹配时按精确锁定版本安装。步骤摘要报告 Rust 和 CLI 是否精确命中缓存。
 
-Gradle User Home, dependencies, wrapper distributions and local build state use
-only `gradle/actions/setup-gradle` 6.4.0 with its enhanced cache provider.
-setup-java supplies JDK 21 without caching. Setup runs after generated projects
-and their patches are ready, before the first Gradle invocation; automatic wrapper
-validation checks the available wrapper JARs. No Gradle version is installed by
-the action: desktop tests and generated KMP builds retain their own wrappers.
-The action keys state by OS, job, workflow/matrix and commit, separating the four
-desktop hosts (including the two macOS architectures) and Android/Wasm jobs.
-It restores the closest available state and deduplicates shared dependencies.
-`cache-read-only: false` allows CI to save PR merge-ref caches and publishing to
-save tag caches; PR entries can be reused by subsequent runs of that PR, but are
-not accessible to other PRs or release tags. Main entries are available to new
-PRs and tags when their platform and cache keys are compatible. The post-action
-stops Gradle daemons before cleanup and saving, including on Windows, so no
-separate `--stop` is required.
-Do not add setup-java caching or an actions/cache entry for Gradle User Home.
-Gradle cache restore/save details are recorded in action logs and job summaries.
+Gradle User Home、依赖、Wrapper 分发包和本地构建状态只使用 `gradle/actions/setup-gradle` 6.4.0 及其增强缓存提供方。setup-java 提供 JDK 21，不启用缓存。Setup 在生成项目和补丁准备好之后、首次 Gradle 调用之前运行；自动 Wrapper 验证检查可用的 Wrapper JAR。Action 不安装 Gradle 版本：桌面测试和生成的 KMP 构建各自保留自己的 Wrapper。状态键包含操作系统、作业、工作流／矩阵和提交，分开四个桌面宿主（包括两种 macOS 架构）与 Android/Wasm 作业。它恢复最接近的可用状态，并对共享依赖去重。`cache-read-only: false` 允许 CI 保存 PR merge-ref 缓存，发布流程保存 tag 缓存；PR 条目可供同一 PR 后续运行复用，但其他 PR 或发布 tag 无法访问。平台和缓存键兼容时，main 条目可供新 PR 和 tag 使用。Post-action 在清理和保存前停止 Gradle daemon，Windows 也如此，因此不需要单独 `--stop`。不要再为 Gradle User Home 添加 setup-java 缓存或 actions/cache 条目。恢复和保存细节记录在 action 日志与作业摘要中。
 
-Android/Wasm and publishing use Node 22 and cache only npm's `~/.npm` download
-cache. There is no committed npm lockfile: the Wasm staging install pins its tool
-and runtime versions in `scripts/build-wasm.py`, and its package is generated.
-The key hashes that script, BoltFFI configuration, patch script and KMP templates;
-a same-platform Node 22 fallback reuses verified downloads. Installs still resolve
-and validate dependencies on every run; node_modules and generated packages are
-not cached. setup-node's automatic package-manager caching is disabled to avoid
-an overlapping provider. PR caches are scoped to the PR merge ref, so a rerun of
-the same PR can verify warm hits; new PRs and release tags can instead restore
-compatible Linux downloads from main.
+Android/Wasm 和发布使用 Node 22，仅缓存 npm 的 `~/.npm` 下载缓存。仓库不提交 npm lockfile：Wasm 暂存安装在 `scripts/build-wasm.py` 中固定工具和运行时版本，其包为生成内容。缓存键对该脚本、BoltFFI 配置、补丁脚本和 KMP 模板计算哈希；同平台 Node 22 的回退键复用已验证下载。每次运行仍解析并验证依赖；不缓存 node_modules 和生成包。setup-node 自动包管理器缓存被关闭，避免提供方重叠。PR 缓存限定于 PR merge ref，因此同一 PR 重跑可验证热命中；新 PR 和发布 tag 则可以从 main 恢复兼容的 Linux 下载。
 
-### Verifying the main cache baseline
+### 验证 main 缓存基线
 
-In a fork, enable Actions and push this CI configuration to its default `main`
-branch without overwriting unrelated commits. An initially empty cache exercises
-the cold path: both Linux jobs must generate bindings and pass their builds and
-rendering checks, then save caches under `refs/heads/main`. Open a new PR against
-that fork's main after this run completes. Use its logs and the cache list to
-confirm that Rust and BoltFFI restore main entries and that setup-gradle restores
-main state/dependencies. Gradle's per-commit state normally uses a fallback match;
-an exact-hit boolean alone does not establish whether anything was restored.
-Check npm restoration in the Android/Wasm job as well. Do not clear upstream
-caches or skip binding generation to demonstrate hits.
+在 fork 中启用 Actions，将此 CI 配置推送到其默认 `main` 分支，不覆盖无关提交。初始空缓存可覆盖冷启动路径：两个 Linux 作业都必须生成绑定，并通过构建和渲染检查，随后将缓存保存到 `refs/heads/main`。运行完成后，针对该 fork 的 main 新建 PR。通过日志和缓存列表确认 Rust、BoltFFI 恢复 main 条目，setup-gradle 恢复 main 状态或依赖。Gradle 每提交状态通常通过回退匹配恢复；仅凭精确命中的布尔值不能判断是否实际恢复了内容。同时检查 Android/Wasm 作业的 npm 恢复。不要为了展示命中而清除上游缓存或跳过绑定生成。
 
-Compare cold-main and new-PR job/step durations, restored/saved archive sizes and
-cache transfer time. Also compare aggregate runner time with the full PR matrix,
-and distinguish that cost from elapsed critical-path time. The initial scope is
-Linux desktop plus Android/Wasm, not a full release build. Keep Windows/macOS out
-of main prewarming unless measurements justify their extra runner cost; narrow
-the Linux scope too if recurring builds and cache transfers outweigh PR savings.
-Record run links and measurements in the change's PR so the result can be
-rechecked after toolchain or dependency updates. A single pair of runs is evidence
-of reuse, not a guarantee of future performance.
+比较冷 main 与新 PR 的作业和步骤耗时、恢复及保存的归档大小、缓存传输时间。还应与完整 PR 矩阵比较累计 runner 时间，并与关键路径的实际耗时区分。初始范围是 Linux 桌面加 Android/Wasm，不是完整发布构建。没有测量数据证明额外 runner 成本合理前，不为 main 预热 Windows/macOS；如果持续构建和缓存传输成本超过 PR 节省，也应缩小 Linux 范围。在本次变更的 PR 中记录运行链接和测量数据，供工具链或依赖更新后复核。一对运行只能证明复用，不能保证未来性能。
 
-Provider references: [Rust cache inputs and keying](https://github.com/Swatinem/rust-cache),
-[official dependency cache](https://github.com/actions/cache), and
-[setup-gradle configuration and caching](https://github.com/gradle/actions/blob/v6.4.0/docs/setup-gradle.md).
+提供方参考：[Rust 缓存输入与键规则](https://github.com/Swatinem/rust-cache)、[官方依赖缓存](https://github.com/actions/cache)、[setup-gradle 配置与缓存](https://github.com/gradle/actions/blob/v6.4.0/docs/setup-gradle.md)。

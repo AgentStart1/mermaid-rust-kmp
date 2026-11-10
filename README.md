@@ -1,26 +1,26 @@
 # mermaid-rust-kmp
 
-`mermaid-rust-kmp` provides Kotlin Multiplatform bindings for [mermaid-rs-renderer](https://crates.io/crates/mermaid-rs-renderer). It renders Mermaid text to SVG strings through native Rust libraries on Android and JVM, or WebAssembly on Kotlin/Wasm.
+`mermaid-rust-kmp` 为 [mermaid-rs-renderer](https://crates.io/crates/mermaid-rs-renderer) 提供 Kotlin Multiplatform 绑定。在 Android 和 JVM 上通过 Rust 原生库，在 Kotlin/Wasm 上通过 WebAssembly，将 Mermaid 文本渲染为 SVG 字符串。
 
-## Supported platforms
+## 支持的平台
 
-| Platform | Status |
+| 平台 | 状态 |
 | --- | --- |
-| Android | Supported |
-| JVM / Desktop | Linux x86_64, Windows x86_64, macOS 15+ (Intel and Apple Silicon) |
-| Kotlin/Wasm browser | Supported |
-| Kotlin/JS | Native rendering is not yet supported |
-| iOS | Native rendering is not yet supported |
+| Android | 已支持 |
+| JVM / Desktop | Linux x86_64、Windows x86_64、macOS 15+（Intel 和 Apple Silicon） |
+| Kotlin/Wasm 浏览器 | 已支持 |
+| Kotlin/JS | 尚不支持原生渲染 |
+| iOS | 尚不支持原生渲染 |
 
-## Add the dependency
+## 添加依赖
 
-The published Kotlin Multiplatform library coordinates are:
+已发布的 Kotlin Multiplatform 库坐标：
 
 ```kotlin
 implementation("io.github.storytellerf:mermaidffi-kmp:<version>")
 ```
 
-Add the dependency to each source set that renders diagrams. For example, Android and JVM can share a source set:
+将依赖添加到每个需要渲染图表的 source set。例如，Android 和 JVM 可以共用一个 source set：
 
 ```kotlin
 kotlin {
@@ -34,7 +34,7 @@ kotlin {
 }
 ```
 
-Kotlin/Wasm targets also need the npm package published alongside the library:
+Kotlin/Wasm 目标还需要与库一起发布的 npm 包：
 
 ```kotlin
 wasmJsMain.dependencies {
@@ -43,9 +43,9 @@ wasmJsMain.dependencies {
 }
 ```
 
-## Usage
+## 使用
 
-Import a function from `com.storyteller_f.mermaid_kmp`, pass Mermaid syntax, and receive SVG text.
+从 `com.storyteller_f.mermaid_kmp` 导入函数，传入 Mermaid 语法，即可获得 SVG 文本。
 
 ```kotlin
 import com.storyteller_f.mermaid_kmp.renderMermaid
@@ -59,17 +59,17 @@ val svg = renderMermaid(
 )
 ```
 
-Available APIs:
+可用 API：
 
-- `renderMermaid(input)`: renders with the default options.
-- `renderMermaidWithSpacing(input, nodeSpacing, rankSpacing)`: adjusts node and rank spacing.
-- `renderMermaidClassicTheme(input)`: renders with the Mermaid default (classic) theme.
+- `renderMermaid(input)`：使用默认选项渲染。
+- `renderMermaidWithSpacing(input, nodeSpacing, rankSpacing)`：调整节点间距和层级间距。
+- `renderMermaidClassicTheme(input)`：使用 Mermaid 默认的 classic 主题渲染。
 
-Calls throw an exception when the underlying renderer cannot process the input. Catch it at your UI or service boundary and present a useful error to the user.
+底层渲染器无法处理输入时，调用会抛出异常。在 UI 或服务边界捕获异常，并向用户提供有帮助的错误信息。
 
-## Sample application
+## 示例应用
 
-[`sample/`](./sample) is a Compose Multiplatform application with Android, Desktop, Web (JS/Wasm), and iOS entry points. It provides a Mermaid editor and displays the resulting SVG text.
+[`sample/`](./sample) 是 Compose Multiplatform 应用，包含 Android、Desktop、Web（JS/Wasm）和 iOS 入口，提供 Mermaid 编辑器并显示生成的 SVG 文本。
 
 ```sh
 cd sample
@@ -84,10 +84,10 @@ cd sample
 ./gradlew :webApp:wasmJsBrowserDevelopmentRun
 ```
 
-The sample's iOS and Kotlin/JS targets display a "Native rendering not yet supported" message. Its Wasm, Android, and JVM targets invoke this library.
+示例的 iOS 和 Kotlin/JS 目标显示“Native rendering not yet supported”提示。Wasm、Android 和 JVM 目标会调用本库。
 
-Desktop native packaging and validation are documented in [DEVELOPMENT.md](./DEVELOPMENT.md).
+桌面原生库打包与验证见 [DEVELOPMENT.md](./DEVELOPMENT.md)。
 
-Version `0.0.1-alpha2` includes only the Linux x86_64 native library. The Windows and macOS packaging fix requires a new release.
+`0.0.1-alpha2` 仅包含 Linux x86_64 原生库。Windows 和 macOS 打包修复需要发布新版本。
 
-For source builds, validation and publishing, see [DEVELOPMENT.md](./DEVELOPMENT.md).
+源码构建、验证和发布说明见 [DEVELOPMENT.md](./DEVELOPMENT.md)。
