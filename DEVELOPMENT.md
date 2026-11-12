@@ -1,5 +1,33 @@
 # 构建与验证
 
+## 示例界面主题验证
+
+`sample/shared` 使用系统主题选择 Material 3 浅色或深色配色。根 `Surface` 提供页面背景和正文颜色，SVG 源码区域使用 `surfaceVariant/onSurfaceVariant`，不修改渲染器输出。
+
+```sh
+bash sample/gradlew -p sample :shared:jvmTest --console=plain
+```
+
+主题测试覆盖普通文字配色的 4.5:1 对比度、浅深色双向重组、编辑内容与 SVG 源码保留、错误提示、首次深色进入和重新进入的页面背景。桌面 UI 测试显式传入主题值，并向成功/错误场景注入确定的渲染结果；它们不验证原生渲染器，也不能替代系统主题事件验证。
+
+Android 的 `MainActivity` 仅声明自行处理 `uiMode`。系统主题切换不重建 Activity，原有组合、编辑/结果状态和渲染协程继续存活；配置仍由 Android 传给 Compose，`isSystemInDarkTheme()` 观察配置并重组。`onConfigurationChanged` 保留父类调用并重新应用 edge-to-edge 系统栏图标对比度。这里没有覆盖旋转等其他配置重建或进程死亡，也不将可能很大的 SVG 写入 saved-instance Bundle。
+
+Android 宿主回归在 `ThemeConfigurationTest`。先独占一台 API 29+ 的测试设备或模拟器，使用自动/浅色/深色模式（自定义定时模式会跳过），再执行：
+
+```sh
+bash sample/gradlew -p sample :androidApp:connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.storyteller_f.project.ThemeConfigurationTest \
+  --console=plain
+```
+
+测试通过 `cmd uimode night` 触发真实系统配置分发，不向 `App` 传主题 Boolean；四个独立场景覆盖编辑、成功结果、异常结果及未完成请求。每次双向切换均检查 Activity 身份、资源配置、Compose 的 `LocalConfiguration` 和页面背景像素，并在结束后恢复系统模式。成功/错误/进行中场景注入确定渲染器，不调用原生解析器；进行中请求使用受控闩锁，检查跨切换只启动一次且最终结果仍发布。执行期间会改变该测试设备的全局主题，因此不可与其他设备任务并行。若执行被强制中止，使用 `adb shell cmd uimode night no` 恢复浅色；测试前为自动/深色时，将 `no` 分别替换为 `auto`/`yes`。
+
+手动补充：在系统设置中双向切换主题，分别检查编辑输入、现有 SVG、错误提示和渲染中的状态；确认页面没有重新出现初始示例。记录 Android 版本、Activity 是否重建及截图。此手动路径也用于覆盖未运行自动化的设备版本。
+
+在 Android、Desktop、Web 和 iOS 宿主上分别检查：以浅色和深色首次打开；保留输入内容，在页面打开时切换系统主题两个方向；离开后切换主题再进入。检查标题、输入文字与标签、按钮的焦点/悬停、输入框边框，以及渲染失败后的错误提示。支持原生渲染的平台还应检查成功后的 SVG 源码区，确认字符串内容未随 UI 主题改变；iOS/JS 应保留其不支持原生渲染的提示。记录宿主与版本，并区分真实系统切换和测试参数注入。
+
+## 工具链与库验证
+
 使用 Rust stable、JDK 21、Python 3.12 和 BoltFFI CLI 0.32.0。Rust 依赖、CLI 和 Wasm 运行时均使用 BoltFFI 0.32（锁定到 0.32.0）。crate 根按 0.32 导出宏的要求调用 `boltffi::scaffolding!()`。Windows 需要 Visual Studio C++ build tools 和 clang-cl；macOS 需要 Xcode 工具。Android/Wasm 构建还需要 Android SDK/NDK、Node/npm 和 Binaryen；Wasm 封装层会安装自身的 TypeScript 依赖。
 
 ```sh

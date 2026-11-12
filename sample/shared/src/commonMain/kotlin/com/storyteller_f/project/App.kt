@@ -2,6 +2,7 @@ package com.storyteller_f.project
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,8 +27,11 @@ import kotlinx.coroutines.withContext
 expect fun renderMermaidDiagram(input: String): String
 
 @Composable
-fun App() {
-    MaterialTheme {
+fun App(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    renderDiagram: (String) -> String = ::renderMermaidDiagram,
+) {
+    SampleTheme(darkTheme) {
         var mermaidInput by remember {
             mutableStateOf(
                 """flowchart LR
@@ -42,7 +46,6 @@ fun App() {
 
         Column(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.background)
                 .safeContentPadding()
                 .fillMaxSize()
                 .padding(16.dp),
@@ -64,7 +67,7 @@ fun App() {
                     scope.launch {
                         try {
                             val result = withContext(Dispatchers.Default) {
-                                renderMermaidDiagram(input)
+                                renderDiagram(input)
                             }
                             svgOutput = result
                             errorMessage = null
@@ -83,7 +86,7 @@ fun App() {
                             scope.launch {
                                 try {
                                     val result = withContext(Dispatchers.Default) {
-                                        renderMermaidDiagram(code)
+                                        renderDiagram(code)
                                     }
                                     svgOutput = result
                                     errorMessage = null
@@ -114,6 +117,7 @@ fun App() {
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = svgOutput,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)

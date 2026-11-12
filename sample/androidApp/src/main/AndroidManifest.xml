@@ -8,7 +8,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        <!-- Keep the Compose state and render scope alive during system theme changes. -->
         <activity
+            android:configChanges="uiMode"
             android:exported="true"
             android:name=".MainActivity">
             <intent-filter>

@@ -86,6 +86,8 @@ cd sample
 
 示例的 iOS 和 Kotlin/JS 目标显示“Native rendering not yet supported”提示。Wasm、Android 和 JVM 目标会调用本库。
 
+示例界面默认跟随系统或宿主的浅色、深色主题，切换时保留编辑内容和渲染结果。主题仅影响控件、页面背景与 SVG 源码文字，不修改生成的 SVG 或 Mermaid 图形主题。
+
 桌面原生库打包与验证见 [DEVELOPMENT.md](./DEVELOPMENT.md)。
 
 `0.0.1-alpha2` 仅包含 Linux x86_64 原生库。Windows 和 macOS 打包修复需要发布新版本。
