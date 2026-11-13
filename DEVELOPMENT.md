@@ -57,7 +57,7 @@ cd mermaid-ffi/dist/kotlin-multiplatform
 
 `patch-ffi.sh [npm-version]` 添加发布和 Wasm 集成。不传版本时，使用本地生成的 npm 包。桌面测试调用全部三个公开函数，并断言 SVG 输出和节点标签。原生库从随包提供的 `native/<host>` 资源加载，无需配置 java.library.path。
 
-`ci.yml` 和 `publish.yml` 都在各自宿主机上构建四个桌面目标。CI 在每台宿主机的同一作业中，使用本地生成的 Kotlin 源码和 JNI 库，构建并运行全部三个公开 API 的渲染测试。CI 不上传或下载 Actions artifacts；Android/Wasm 构建单独运行。PR CI 针对构建源码、脚本、模板、共享 Actions 和 ci.yml 的变化执行。对 main 的 push 使用相同路径过滤器，运行 Linux 桌面测试和 Android/Wasm 构建，生成共享缓存基线。为限制持续预热成本，CI 中 Windows 和两个 macOS 宿主仍只在 PR 上运行。Main 使用与 PR 相同的作业、目标键、绑定生成和渲染检查；不发布包，也不需要发布凭据。同一分支或 PR 的新运行会取消尚未完成的旧运行，避免重复预热和测试。仅涉及 publish.yml 或文档的改动不会触发构建和测试作业。版本 tag 的发布工作流只上传各宿主的原生资源，合并后发布到 Maven Central/npm，不重复测试。`scripts/check-desktop-package.py <jar>` 验证完整的四平台发布 JAR，不用于 CI 构建的单平台 JAR。推送 `v<version>` tag 开始发布。不要覆盖已有版本：0.0.1-alpha2 仅包含 Linux x86_64，此修复需要新版本。
+`ci.yml` 和 `publish.yml` 都在各自宿主机上构建四个桌面目标。CI 在每台宿主机的同一作业中，使用本地生成的 Kotlin 源码和 JNI 库，构建并运行全部三个公开 API 的渲染测试。CI 不上传或下载 Actions artifacts；Android/Wasm 构建单独运行。PR CI 针对构建源码、脚本、模板、共享 Actions 和 ci.yml 的变化执行。对 main 的 push 使用相同路径过滤器，运行 Linux 桌面测试和 Android/Wasm 构建，生成共享缓存基线。为限制持续预热成本，CI 中 Windows 和两个 macOS 宿主仍只在 PR 上运行。Main 使用与 PR 相同的作业、目标键、绑定生成和渲染检查；不发布包，也不需要发布凭据。同一分支或 PR 的新运行会取消尚未完成的旧运行，避免重复预热和测试。仅涉及 publish.yml 或文档的改动不会触发构建和测试作业。版本 tag 的发布工作流只上传各宿主的原生资源，合并后发布到 Maven Central/npm，不重复测试。`scripts/check-desktop-package.py <jar>` 验证完整的四平台发布 JAR，不用于 CI 构建的单平台 JAR。发布关联 `v<version>` tag 的 GitHub Release（包括预发布）开始发布；版本号从关联 tag 去掉 `v` 前缀得到，仅推送 tag 不会触发发布。不要覆盖已有版本：0.0.1-alpha2 仅包含 Linux x86_64，此修复需要新版本。
 
 预发布版本（例如 0.0.1-alpha4）发布到 npm 的 `next` 通道，稳定版本发布到 `latest`。工作流为两者显式传入 `--tag`，因为 npm 11 发布预发布版本时要求指定 tag。构建元数据不影响通道选择；版本号本身保持不变。
 

@@ -1,18 +1,19 @@
 name: Publish to Maven Central & npm
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types: [published]
 
 permissions:
   contents: read
 
 env:
+  RELEASE_TAG: ${{ github.event.release.tag_name }}
   CARGO_TERM_COLOR: never
 
 jobs:
   desktop-native:
+    if: startsWith(github.event.release.tag_name, 'v')
     strategy:
       fail-fast: false
       matrix:
@@ -53,7 +54,7 @@ jobs:
 
   publish:
     needs: desktop-native
-    if: github.repository == 'storytellerF/mermaid-rust-kmp'
+    if: startsWith(github.event.release.tag_name, 'v') && (github.repository == 'storytellerF/mermaid-rust-kmp')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -110,7 +111,7 @@ jobs:
 
       - name: Extract version from tag
         run: |
-          VERSION="${GITHUB_REF#refs/tags/v}"
+          VERSION="${RELEASE_TAG#v}"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Build native libraries and generate bindings
