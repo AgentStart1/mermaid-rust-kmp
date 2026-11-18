@@ -5,6 +5,15 @@ import { pathToFileURL } from "node:url";
 const pkg = resolve(process.argv[2] ?? "mermaid-ffi/dist/wasm/pkg");
 const api = await import(pathToFileURL(resolve(pkg, "node.js")));
 await api.initialized;
+const invalidInput = "sequenceDiagram\nparticipant Alice\nparticipant Bob\nAlice->>John: Hello";
+for (const [name, options] of [
+    ["renderMermaid", []],
+    ["renderMermaidWithSpacing", [50, 70]],
+    ["renderMermaidClassicTheme", []],
+]) {
+    assert.throws(() => api[name](invalidInput, ...options), /unknown participant 'John'/, name);
+    assert.match(api[name]("graph TD; A-->B", ...options), /<svg[\s>]/, name);
+}
 for (const input of ["graph TD; A[Alpha]-->B[Beta]", "sequenceDiagram\n participant A as Alpha\n participant B as Beta\n A->>B: Hello"]) {
     for (const [name, args] of [
         ["renderMermaid", [input]],
